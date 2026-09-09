@@ -9,17 +9,24 @@ import { CalendarTimelineView } from './components/CalendarTimelineView';
 import { AnalyticsView } from './components/AnalyticsView';
 import { SubscriptionModal } from './components/SubscriptionModal';
 import { QuickSessionResetModal } from './components/QuickSessionResetModal';
+import { AuthView } from './components/AuthView';
 import { Subscription, ViewMode, FilterState } from './types';
 import {
-  loadSubscriptions,
-  saveSubscriptions,
+  fetchUserSubscriptions,
+  saveSubscriptionToCloud,
+  deleteSubscriptionFromCloud,
   exportSubscriptionsAsJSON,
   exportSubscriptionsAsCSV,
+  loadLocalSubscriptions,
 } from './services/storage';
 import { getSubscriptionStatus } from './utils/dateUtils';
+import { supabase } from './lib/supabase';
+import { User } from '@supabase/supabase-js';
 
 export function App() {
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>(() => loadSubscriptions());
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
   const [filters, setFilters] = useState<FilterState>({
     search: '',
@@ -35,22 +42,57 @@ export function App() {
   const [isQuickResetOpen, setIsQuickResetOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  useEffect(() => { saveSubscriptions(subscriptions); }, [subscriptions]);
+  // Initialize Supabase Auth Session
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+
+    const {
+      data: { subscription: authListener },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+
+    return () => {
+      authListener.unsubscribe();
+    };
+  }, []);
+
+  // Fetch subscriptions whenever user state changes
+  useEffect(() => {
+    if (user) {
+      fetchUserSubscriptions().then(subs => {
+        setSubscriptions(subs);
+      });
+    } else {
+      setSubscriptions(loadLocalSubscriptions());
+    }
+  }, [user]);
 
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3500);
   };
 
-  const handleSave = (
+  const handleSave = async (
     data: Omit<Subscription, 'id' | 'createdAt' | 'updatedAt'>,
     editId?: string,
   ) => {
     const now = new Date().toISOString();
     if (editId) {
+      const updatedSub: Subscription = {
+        ...data,
+        id: editId,
+        createdAt: subscriptions.find(s => s.id === editId)?.createdAt || now,
+        updatedAt: now,
+      };
       setSubscriptions(prev =>
-        prev.map(s => s.id === editId ? { ...s, ...data, updatedAt: now } : s)
+        prev.map(s => s.id === editId ? updatedSub : s)
       );
+      await saveSubscriptionToCloud(updatedSub);
       showToast('Subscription updated ✦');
     } else {
       const newSub: Subscription = {
@@ -60,46 +102,70 @@ export function App() {
         updatedAt: now,
       };
       setSubscriptions(prev => [newSub, ...prev]);
+      await saveSubscriptionToCloud(newSub);
       showToast('New AI subscription added ✧');
     }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     const t = subscriptions.find(s => s.id === id);
     if (!t) return;
     if (confirm(`Delete ${t.model} for ${t.account}?`)) {
       setSubscriptions(prev => prev.filter(s => s.id !== id));
+      await deleteSubscriptionFromCloud(id);
       showToast('Subscription deleted');
     }
   };
 
-  const handleTriggerSessionReset = (sub: Subscription, hours: number) => {
+  const handleTriggerSessionReset = async (sub: Subscription, hours: number) => {
     const reset = new Date();
     reset.setHours(reset.getHours() + hours);
+    const updated = {
+      ...sub,
+      sessionResetAt: reset.toISOString(),
+      sessionDurationHours: hours,
+      updatedAt: new Date().toISOString(),
+    };
     setSubscriptions(prev =>
-      prev.map(s => s.id === sub.id
-        ? { ...s, sessionResetAt: reset.toISOString(), sessionDurationHours: hours, updatedAt: new Date().toISOString() }
-        : s)
+      prev.map(s => s.id === sub.id ? updated : s)
     );
+    await saveSubscriptionToCloud(updated);
     showToast(`⏱ ${hours}h cooldown started for ${sub.account}`);
   };
 
-  const handleClearSessionReset = (id: string) => {
+  const handleClearSessionReset = async (id: string) => {
+    const target = subscriptions.find(s => s.id === id);
+    if (!target) return;
+    const updated = {
+      ...target,
+      sessionResetAt: null,
+      updatedAt: new Date().toISOString(),
+    };
     setSubscriptions(prev =>
-      prev.map(s => s.id === id ? { ...s, sessionResetAt: null, updatedAt: new Date().toISOString() } : s)
+      prev.map(s => s.id === id ? updated : s)
     );
+    await saveSubscriptionToCloud(updated);
     showToast('Session lock cleared ✓');
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    showToast('Signed out of QuotaVerse');
   };
 
   const handleImportJSON = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = ev => {
+    reader.onload = async ev => {
       try {
         const parsed = JSON.parse(ev.target?.result as string);
         if (Array.isArray(parsed)) {
           setSubscriptions(parsed);
+          for (const sub of parsed) {
+            await saveSubscriptionToCloud(sub);
+          }
           showToast(`Imported ${parsed.length} subscriptions`);
         }
       } catch { alert('Invalid JSON file'); }
@@ -108,10 +174,16 @@ export function App() {
     e.target.value = '';
   };
 
-  const handleResetData = () => {
-    if (confirm('Reset to sample data?')) {
+  const handleResetData = async () => {
+    if (confirm('Reset to sample data? Current items will be replaced.')) {
       localStorage.removeItem('ai_subscriptions_hub_v2');
-      setSubscriptions(loadSubscriptions());
+      const sample = loadLocalSubscriptions();
+      setSubscriptions(sample);
+      if (user) {
+        for (const s of sample) {
+          await saveSubscriptionToCloud(s);
+        }
+      }
       showToast('Restored sample subscriptions');
     }
   };
@@ -134,6 +206,28 @@ export function App() {
   });
 
   const existingAccounts = Array.from(new Set(subscriptions.map(s => s.account)));
+
+  if (authLoading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#070918', color: '#fff' }}>
+        <AnimeBackground />
+        <div style={{ position: 'relative', zIndex: 10, textAlign: 'center' }}>
+          <div style={{ fontSize: 36, marginBottom: 12 }} className="animate-pulse">✧</div>
+          <p style={{ color: 'var(--muted)', font: "700 16px 'Space Grotesk'" }}>Loading QuotaVerse...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user is not authenticated, show Auth Page
+  if (!user) {
+    return (
+      <div style={{ minHeight: '100vh', color: 'var(--text)', overflowX: 'hidden' }}>
+        <AnimeBackground />
+        <AuthView onSuccess={() => showToast('Welcome to QuotaVerse! ✦')} />
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', color: 'var(--text)', overflowX: 'hidden' }}>
@@ -167,6 +261,8 @@ export function App() {
         onResetData={handleResetData}
         activeCount={subscriptions.filter(s => getSubscriptionStatus(s) !== 'expired').length}
         totalCount={subscriptions.length}
+        user={user}
+        onSignOut={handleSignOut}
       />
 
       {/* Main content shell */}

@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { ViewMode } from '../types';
+import { User } from '@supabase/supabase-js';
 
 interface HeaderProps {
   viewMode: ViewMode;
@@ -12,6 +13,8 @@ interface HeaderProps {
   onResetData: () => void;
   activeCount: number;
   totalCount: number;
+  user: User | null;
+  onSignOut: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -25,6 +28,8 @@ export const Header: React.FC<HeaderProps> = ({
   onResetData,
   activeCount,
   totalCount,
+  user,
+  onSignOut,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -81,8 +86,43 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Actions */}
+          {/* Actions & User Profile */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 11, flexWrap: 'wrap' }}>
+            {user && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '7px 12px',
+                  borderRadius: 12,
+                  background: 'rgba(154,77,255,.12)',
+                  border: '1px solid rgba(154,77,255,.3)',
+                  fontSize: 12,
+                }}
+              >
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#4cdbac', boxShadow: '0 0 8px #4cdbac' }} />
+                <span style={{ color: '#d9caff', fontWeight: 600 }}>{user.email}</span>
+                <button
+                  onClick={onSignOut}
+                  title="Sign out of QuotaVerse"
+                  style={{
+                    marginLeft: 6,
+                    padding: '2px 7px',
+                    borderRadius: 6,
+                    background: 'rgba(255,93,120,.15)',
+                    border: '1px solid rgba(255,93,120,.3)',
+                    color: '#ff8ba1',
+                    fontSize: 10,
+                    cursor: 'pointer',
+                    fontWeight: 700,
+                  }}
+                >
+                  Log Out
+                </button>
+              </div>
+            )}
+
             <button
               onClick={onOpenQuickResetModal}
               style={{

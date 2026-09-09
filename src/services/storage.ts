@@ -1,32 +1,171 @@
 import { Subscription } from '../types';
+import { supabase } from '../lib/supabase';
 
 const STORAGE_KEY = 'ai_subscriptions_hub_v2';
 
-export function loadSubscriptions(): Subscription[] {
+// ── Database to TypeScript Mapper ──
+function mapFromDB(row: any): Subscription {
+  return {
+    id: row.id,
+    account: row.account,
+    accountTag: row.account_tag || undefined,
+    accountColor: row.account_color || undefined,
+    model: row.model,
+    customModelName: row.custom_model_name || undefined,
+    plan: row.plan || 'Pro',
+    cost: Number(row.cost) || 0,
+    billingCycle: row.billing_cycle || 'monthly',
+    startedDate: row.started_date || undefined,
+    renewalDate: row.renewal_date,
+    sessionResetAt: row.session_reset_at || null,
+    sessionDurationHours: row.session_duration_hours || 5,
+    notes: row.notes || undefined,
+    autoRenew: row.auto_renew ?? true,
+    createdAt: row.created_at || new Date().toISOString(),
+    updatedAt: row.updated_at || new Date().toISOString(),
+  };
+}
+
+// ── TypeScript to Database Mapper ──
+function mapToDB(sub: Subscription, userId: string) {
+  return {
+    id: sub.id,
+    user_id: userId,
+    account: sub.account,
+    account_tag: sub.accountTag || null,
+    account_color: sub.accountColor || null,
+    model: sub.model,
+    custom_model_name: sub.customModelName || null,
+    plan: sub.plan,
+    cost: sub.cost,
+    billing_cycle: sub.billingCycle,
+    started_date: sub.startedDate || null,
+    renewal_date: sub.renewalDate,
+    session_reset_at: sub.sessionResetAt || null,
+    session_duration_hours: sub.sessionDurationHours || 5,
+    notes: sub.notes || null,
+    auto_renew: sub.autoRenew,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+export async function fetchUserSubscriptions(): Promise<Subscription[]> {
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData.session?.user;
+
+    if (!user) {
+      return loadLocalSubscriptions();
+    }
+
+    const { data, error } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.warn('Supabase fetch error, using local fallback:', error.message);
+      return loadLocalSubscriptions();
+    }
+
+    if (data && data.length > 0) {
+      const mapped = data.map(mapFromDB);
+      saveLocalSubscriptions(mapped);
+      return mapped;
+    }
+
+    // If new cloud user with 0 subscriptions, see if they had local subscriptions to migrate
+    const local = loadLocalSubscriptions();
+    if (local.length > 0) {
+      await syncAllToSupabase(local, user.id);
+      return local;
+    }
+
+    return [];
+  } catch (err) {
+    console.error('Fetch error:', err);
+    return loadLocalSubscriptions();
+  }
+}
+
+export async function saveSubscriptionToCloud(sub: Subscription): Promise<void> {
+  saveLocalSubscriptionSingle(sub);
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData.session?.user;
+    if (user) {
+      const dbPayload = mapToDB(sub, user.id);
+      await supabase.from('subscriptions').upsert(dbPayload);
+    }
+  } catch (err) {
+    console.error('Failed to sync subscription to Supabase:', err);
+  }
+}
+
+export async function deleteSubscriptionFromCloud(id: string): Promise<void> {
+  deleteLocalSubscription(id);
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData.session?.user) {
+      await supabase.from('subscriptions').delete().eq('id', id);
+    }
+  } catch (err) {
+    console.error('Failed to delete subscription from Supabase:', err);
+  }
+}
+
+export async function syncAllToSupabase(subs: Subscription[], userId: string): Promise<void> {
+  try {
+    const payloads = subs.map(s => mapToDB(s, userId));
+    if (payloads.length > 0) {
+      await supabase.from('subscriptions').upsert(payloads);
+    }
+  } catch (err) {
+    console.error('Error batch syncing to Supabase:', err);
+  }
+}
+
+// ── LocalStorage Helpers ──
+export function loadLocalSubscriptions(): Subscription[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return seedInitialData();
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) && parsed.length > 0 ? parsed : seedInitialData();
-  } catch (err) {
-    console.error('Failed to load from storage:', err);
+  } catch {
     return seedInitialData();
   }
 }
 
-export function saveSubscriptions(subs: Subscription[]): void {
+export function saveLocalSubscriptions(subs: Subscription[]): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(subs));
   } catch (err) {
-    console.error('Failed to save subscriptions:', err);
+    console.error(err);
   }
+}
+
+function saveLocalSubscriptionSingle(sub: Subscription): void {
+  const current = loadLocalSubscriptions();
+  const idx = current.findIndex(s => s.id === sub.id);
+  if (idx > -1) {
+    current[idx] = sub;
+  } else {
+    current.unshift(sub);
+  }
+  saveLocalSubscriptions(current);
+}
+
+function deleteLocalSubscription(id: string): void {
+  const current = loadLocalSubscriptions();
+  saveLocalSubscriptions(current.filter(s => s.id !== id));
 }
 
 export function exportSubscriptionsAsJSON(subs: Subscription[]): void {
   const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(subs, null, 2));
   const downloadAnchor = document.createElement('a');
   downloadAnchor.setAttribute("href", dataStr);
-  downloadAnchor.setAttribute("download", `ai-subscriptions-backup-${new Date().toISOString().slice(0,10)}.json`);
+  downloadAnchor.setAttribute("download", `quotaverse-backup-${new Date().toISOString().slice(0,10)}.json`);
   document.body.appendChild(downloadAnchor);
   downloadAnchor.click();
   downloadAnchor.remove();
@@ -49,7 +188,7 @@ export function exportSubscriptionsAsCSV(subs: Subscription[]): void {
   const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
   const downloadAnchor = document.createElement('a');
   downloadAnchor.setAttribute("href", encodeURI(csvContent));
-  downloadAnchor.setAttribute("download", `ai-subscriptions-${new Date().toISOString().slice(0,10)}.csv`);
+  downloadAnchor.setAttribute("download", `quotaverse-${new Date().toISOString().slice(0,10)}.csv`);
   document.body.appendChild(downloadAnchor);
   downloadAnchor.click();
   downloadAnchor.remove();
@@ -58,13 +197,11 @@ export function exportSubscriptionsAsCSV(subs: Subscription[]): void {
 function seedInitialData(): Subscription[] {
   const today = new Date();
   const formatYMD = (d: Date) => d.toISOString().slice(0, 10);
-  
   const addDays = (num: number) => {
     const d = new Date(today);
     d.setDate(d.getDate() + num);
     return formatYMD(d);
   };
-
   const addHours = (hours: number) => {
     const d = new Date();
     d.setHours(d.getHours() + hours);
@@ -99,8 +236,8 @@ function seedInitialData(): Subscription[] {
       cost: 20,
       billingCycle: 'monthly',
       startedDate: addDays(-28),
-      renewalDate: addDays(2), // Expiring soon
-      sessionResetAt: addHours(3.5), // Active rolling lock
+      renewalDate: addDays(2),
+      sessionResetAt: addHours(3.5),
       sessionDurationHours: 5,
       notes: 'Hit 5-hour rolling limit during codebase refactoring.',
       autoRenew: true,
@@ -168,7 +305,7 @@ function seedInitialData(): Subscription[] {
       cost: 20,
       billingCycle: 'monthly',
       startedDate: addDays(-32),
-      renewalDate: addDays(-2), // Expired
+      renewalDate: addDays(-2),
       sessionDurationHours: 24,
       notes: 'Need to update payment card for auto-renewal.',
       autoRenew: false,
@@ -177,6 +314,6 @@ function seedInitialData(): Subscription[] {
     }
   ];
 
-  saveSubscriptions(initial);
+  saveLocalSubscriptions(initial);
   return initial;
 }
