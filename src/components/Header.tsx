@@ -15,6 +15,7 @@ interface HeaderProps {
   totalCount: number;
   user: User | null;
   onSignOut: () => void;
+  onOpenAuth: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -30,6 +31,7 @@ export const Header: React.FC<HeaderProps> = ({
   totalCount,
   user,
   onSignOut,
+  onOpenAuth,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -88,7 +90,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Actions & User Profile */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 11, flexWrap: 'wrap' }}>
-            {user && (
+            {user ? (
               <div
                 style={{
                   display: 'flex',
@@ -96,8 +98,8 @@ export const Header: React.FC<HeaderProps> = ({
                   gap: 8,
                   padding: '7px 12px',
                   borderRadius: 12,
-                  background: 'rgba(154,77,255,.12)',
-                  border: '1px solid rgba(154,77,255,.3)',
+                  background: 'rgba(154,77,255,.14)',
+                  border: '1px solid rgba(154,77,255,.32)',
                   fontSize: 12,
                 }}
               >
@@ -108,7 +110,7 @@ export const Header: React.FC<HeaderProps> = ({
                   title="Sign out of QuotaVerse"
                   style={{
                     marginLeft: 6,
-                    padding: '2px 7px',
+                    padding: '3px 8px',
                     borderRadius: 6,
                     background: 'rgba(255,93,120,.15)',
                     border: '1px solid rgba(255,93,120,.3)',
@@ -121,6 +123,28 @@ export const Header: React.FC<HeaderProps> = ({
                   Log Out
                 </button>
               </div>
+            ) : (
+              <button
+                onClick={onOpenAuth}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 7,
+                  padding: '9px 15px',
+                  borderRadius: 12,
+                  background: 'rgba(154,77,255,.18)',
+                  border: '1px solid rgba(154,77,255,.4)',
+                  color: '#e6d7ff',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  transition: 'all .2s',
+                }}
+              >
+                <span>👤</span>
+                <span>Sign In / Cloud Sync</span>
+              </button>
             )}
 
             <button

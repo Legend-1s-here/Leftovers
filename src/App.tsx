@@ -26,6 +26,7 @@ import { User } from '@supabase/supabase-js';
 export function App() {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
   const [filters, setFilters] = useState<FilterState>({
@@ -207,28 +208,6 @@ export function App() {
 
   const existingAccounts = Array.from(new Set(subscriptions.map(s => s.account)));
 
-  if (authLoading) {
-    return (
-      <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: '#070918', color: '#fff' }}>
-        <AnimeBackground />
-        <div style={{ position: 'relative', zIndex: 10, textAlign: 'center' }}>
-          <div style={{ fontSize: 36, marginBottom: 12 }} className="animate-pulse">✧</div>
-          <p style={{ color: 'var(--muted)', font: "700 16px 'Space Grotesk'" }}>Loading QuotaVerse...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // If user is not authenticated, show Auth Page
-  if (!user) {
-    return (
-      <div style={{ minHeight: '100vh', color: 'var(--text)', overflowX: 'hidden' }}>
-        <AnimeBackground />
-        <AuthView onSuccess={() => showToast('Welcome to QuotaVerse! ✦')} />
-      </div>
-    );
-  }
-
   return (
     <div style={{ minHeight: '100vh', color: 'var(--text)', overflowX: 'hidden' }}>
       {/* Anime layer: background, canvas, sakura, auras */}
@@ -263,6 +242,7 @@ export function App() {
         totalCount={subscriptions.length}
         user={user}
         onSignOut={handleSignOut}
+        onOpenAuth={() => setShowAuthModal(true)}
       />
 
       {/* Main content shell */}
@@ -339,7 +319,50 @@ export function App() {
         )}
       </main>
 
-      {/* Modals */}
+      {/* Auth Modal */}
+      {showAuthModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 60,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(4,5,18,.82)',
+            backdropFilter: 'blur(12px)',
+          }}
+          onClick={e => { if (e.target === e.currentTarget) setShowAuthModal(false); }}
+        >
+          <div style={{ position: 'relative', width: '100%', maxWidth: 480 }}>
+            <button
+              onClick={() => setShowAuthModal(false)}
+              style={{
+                position: 'absolute',
+                top: 14,
+                right: 24,
+                zIndex: 70,
+                background: 'transparent',
+                border: 0,
+                color: 'var(--muted)',
+                fontSize: 22,
+                cursor: 'pointer',
+              }}
+            >
+              ✕
+            </button>
+            <AuthView
+              onSuccess={() => {
+                setShowAuthModal(false);
+                showToast('Signed in successfully! ✦');
+              }}
+              onSkipAuth={() => setShowAuthModal(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Subscription Edit / Add Modal */}
       <SubscriptionModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -348,6 +371,8 @@ export function App() {
         existingAccounts={existingAccounts}
         initialAccount={prefilledAccount}
       />
+
+      {/* Quick Rate-limit Cooldown Reset Modal */}
       <QuickSessionResetModal
         isOpen={isQuickResetOpen}
         onClose={() => setIsQuickResetOpen(false)}

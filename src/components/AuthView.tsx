@@ -3,9 +3,10 @@ import { supabase } from '../lib/supabase';
 
 interface AuthViewProps {
   onSuccess?: () => void;
+  onSkipAuth?: () => void;
 }
 
-export const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
+export const AuthView: React.FC<AuthViewProps> = ({ onSuccess, onSkipAuth }) => {
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -34,33 +35,42 @@ export const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
         }
 
         const { data, error } = await supabase.auth.signUp({
-          email,
+          email: email.trim(),
           password,
         });
 
         if (error) throw error;
 
         if (data.session) {
-          setInfoMessage('Account created successfully!');
+          setInfoMessage('Account created successfully! Welcome to QuotaVerse.');
           if (onSuccess) onSuccess();
         } else {
-          setInfoMessage('Confirmation email sent! Please check your inbox (or log in directly if confirmation is disabled).');
+          setInfoMessage('Account created! Please check your email inbox if confirmation is required, or try signing in.');
         }
       } else if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({
-          email,
+          email: email.trim(),
           password,
         });
 
-        if (error) throw error;
+        if (error) {
+          if (error.message.toLowerCase().includes('email not confirmed')) {
+            throw new Error('Email not confirmed. Check your email inbox or disable email confirmation in Supabase Auth settings.');
+          }
+          if (error.message.toLowerCase().includes('invalid login credentials')) {
+            throw new Error('Invalid email or password. If you do not have an account yet, click Sign Up below.');
+          }
+          throw error;
+        }
+
         if (onSuccess) onSuccess();
       } else if (mode === 'forgot') {
-        const { error } = await supabase.auth.resetPasswordForEmail(email);
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
         if (error) throw error;
-        setInfoMessage('Password reset link sent to your email.');
+        setInfoMessage('Password reset instructions sent to your email.');
       }
     } catch (err: any) {
-      setErrorMessage(err.message || 'Authentication error occurred');
+      setErrorMessage(err.message || 'Authentication failed');
     } finally {
       setLoading(false);
     }
@@ -103,44 +113,44 @@ export const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
       <div
         style={{
           width: 'min(460px, 100%)',
-          padding: '36px 32px',
+          padding: '36px 30px',
           borderRadius: 24,
           border: '1px solid rgba(167,98,255,.45)',
-          background: 'linear-gradient(145deg, rgba(17,23,53,.92), rgba(10,14,34,.95))',
+          background: 'linear-gradient(145deg, rgba(17,23,53,.94), rgba(10,14,34,.96))',
           boxShadow: '0 25px 100px rgba(40,14,97,.75)',
           backdropFilter: 'blur(16px)',
           position: 'relative',
         }}
       >
-        {/* Brand Orb */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 28 }}>
+        {/* Brand Orb & Header */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: 24 }}>
           <div
             className="brand-orb"
             style={{
-              width: 56,
-              height: 56,
+              width: 54,
+              height: 54,
               display: 'grid',
               placeItems: 'center',
               border: '1px solid #a950ff',
-              borderRadius: 20,
-              fontSize: 28,
+              borderRadius: 18,
+              fontSize: 26,
               background: 'linear-gradient(145deg, rgba(144,67,255,.35), rgba(25,210,231,.12))',
               boxShadow: '0 0 32px rgba(155,74,255,.45)',
-              marginBottom: 16,
+              marginBottom: 14,
               position: 'relative',
             }}
           >
             ✧
           </div>
-          <h1 style={{ font: "700 24px 'Space Grotesk'", color: '#fff', margin: 0, letterSpacing: '-.5px' }}>
-            {mode === 'login' ? 'Welcome to QuotaVerse' : mode === 'signup' ? 'Create Your QuotaVerse Account' : 'Reset Password'}
+          <h1 style={{ font: "700 22px 'Space Grotesk'", color: '#fff', margin: 0, letterSpacing: '-.5px' }}>
+            {mode === 'login' ? 'Sign In to QuotaVerse' : mode === 'signup' ? 'Create Your Account' : 'Reset Password'}
           </h1>
-          <p style={{ marginTop: 6, color: 'var(--muted)', fontSize: 13 }}>
+          <p style={{ marginTop: 5, color: 'var(--muted)', fontSize: 13 }}>
             {mode === 'login'
-              ? 'Log in to sync your AI model limits and subscriptions'
+              ? 'Enter your email & password to sync your AI model limits'
               : mode === 'signup'
-              ? 'Join QuotaVerse for private cloud-synced quota tracking'
-              : 'Enter your email to receive a password reset link'}
+              ? 'Sign up with email & password for private cloud tracking'
+              : 'Enter your email to receive password reset link'}
           </p>
         </div>
 
@@ -154,7 +164,8 @@ export const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
               border: '1px solid rgba(255,93,120,.35)',
               color: '#ff8ba1',
               fontSize: 12,
-              marginBottom: 18,
+              marginBottom: 16,
+              lineHeight: 1.4,
             }}
           >
             ⚠️ {errorMessage}
@@ -170,7 +181,8 @@ export const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
               border: '1px solid rgba(76,219,172,.35)',
               color: '#4cdbac',
               fontSize: 12,
-              marginBottom: 18,
+              marginBottom: 16,
+              lineHeight: 1.4,
             }}
           >
             ✓ {infoMessage}
@@ -178,13 +190,13 @@ export const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
         )}
 
         {/* Form */}
-        <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 16 }}>
+        <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 14 }}>
           <div>
-            <label style={labelStyle}>Email Address</label>
+            <label style={labelStyle}>Email ID</label>
             <input
               type="email"
               required
-              placeholder="you@example.com"
+              placeholder="e.g. yourname@gmail.com"
               value={email}
               onChange={e => setEmail(e.target.value)}
               style={inputStyle}
@@ -201,14 +213,14 @@ export const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
                     onClick={() => { setMode('forgot'); setErrorMessage(null); setInfoMessage(null); }}
                     style={{ background: 'none', border: 0, color: '#c79aff', fontSize: 11, cursor: 'pointer', padding: 0 }}
                   >
-                    Forgot?
+                    Forgot Password?
                   </button>
                 )}
               </div>
               <input
                 type="password"
                 required
-                placeholder="••••••••"
+                placeholder="Enter password (min 6 characters)"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 style={inputStyle}
@@ -222,7 +234,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
               <input
                 type="password"
                 required
-                placeholder="••••••••"
+                placeholder="Repeat password"
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
                 style={inputStyle}
@@ -234,13 +246,13 @@ export const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
             type="submit"
             disabled={loading}
             style={{
-              marginTop: 6,
+              marginTop: 4,
               padding: '12px',
               borderRadius: 14,
               background: 'linear-gradient(135deg, #993dff, #6328dc)',
               boxShadow: '0 10px 28px rgba(111,41,228,.4)',
               color: '#fff',
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: 700,
               border: 0,
               cursor: loading ? 'not-allowed' : 'pointer',
@@ -253,8 +265,33 @@ export const AuthView: React.FC<AuthViewProps> = ({ onSuccess }) => {
           </button>
         </form>
 
+        {/* Guest / Demo Option */}
+        {onSkipAuth && (
+          <div style={{ marginTop: 14, textAlign: 'center' }}>
+            <button
+              type="button"
+              onClick={onSkipAuth}
+              style={{
+                width: '100%',
+                padding: '10px',
+                borderRadius: 12,
+                background: 'rgba(141,158,225,.08)',
+                border: '1px solid rgba(141,158,225,.2)',
+                color: '#d7def4',
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'background .2s',
+              }}
+            >
+              Continue to Dashboard (Guest Mode) →
+            </button>
+          </div>
+        )}
+
         {/* Mode Switcher Footer */}
-        <div style={{ marginTop: 24, paddingTop: 18, borderTop: '1px solid var(--line)', textAlign: 'center', fontSize: 12, color: 'var(--muted)' }}>
+        <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--line)', textAlign: 'center', fontSize: 12, color: 'var(--muted)' }}>
           {mode === 'login' ? (
             <span>
               Don't have an account?{' '}
