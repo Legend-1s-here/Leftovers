@@ -43,18 +43,43 @@ export function App() {
   const [isQuickResetOpen, setIsQuickResetOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  // Initialize Supabase Auth Session
+  // Initialize Supabase Auth Session and handle confirmation link redirects
   useEffect(() => {
+    // Check URL parameters for confirmation or errors
+    const hash = window.location.hash;
+    const search = window.location.search;
+    
+    if (hash.includes('error_description') || search.includes('error_description')) {
+      const params = new URLSearchParams(hash.replace('#', '?') || search);
+      const errDesc = params.get('error_description');
+      if (errDesc) {
+        setToast(`⚠️ ${decodeURIComponent(errDesc.replace(/\+/g, ' '))}`);
+      }
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setAuthLoading(false);
+      if (session) {
+        // Clean URL hash if logged in via confirmation link
+        if (window.location.hash.includes('access_token')) {
+          window.history.replaceState(null, '', window.location.pathname);
+          showToast('Email confirmed & signed in! ✦');
+        }
+      }
     });
 
     const {
       data: { subscription: authListener },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
       setAuthLoading(false);
+      if (event === 'SIGNED_IN') {
+        if (window.location.hash.includes('access_token')) {
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+        showToast('Signed in to QuotaVerse ✦');
+      }
     });
 
     return () => {
