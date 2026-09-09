@@ -173,7 +173,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 16 }}>
+        <form onSubmit={handleSubmit} noValidate style={{ display: 'grid', gap: 16 }}>
           {/* Account Email */}
           <div>
             <label style={labelStyle}>
@@ -321,9 +321,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
               <label style={labelStyle}>Limit Reset (Hours, Max 2w)</label>
               <input
                 type="number"
-                min="1"
-                max="336"
-                placeholder="Hours (1-336)"
+                placeholder="Hours (e.g. 5, 24, 168)"
                 value={sessionDurationHours}
                 onChange={e => setSessionDurationHours(Math.min(336, Math.max(1, parseInt(e.target.value) || 1)))}
                 style={inputStyle}
