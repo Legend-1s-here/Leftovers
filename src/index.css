@@ -1,0 +1,267 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── CSS design tokens from the uploaded QuotaVerse design ── */
+:root {
+  --bg: #070918;
+  --panel: rgba(14, 19, 42, .82);
+  --panel-2: #101733;
+  --line: rgba(147, 164, 255, .16);
+  --text: #f6f4ff;
+  --muted: #8f98ba;
+  --purple: #9a4dff;
+  --violet: #6c3df5;
+  --cyan: #29c8e8;
+  --pink: #f26bb5;
+  --green: #4cdbac;
+  --yellow: #ffd75e;
+  --orange: #ff9e54;
+  --red: #ff5d78;
+  --shadow: 0 24px 70px rgba(0,0,0,.3);
+  --radius: 19px;
+}
+
+@layer base {
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    color: var(--text);
+    background: var(--bg);
+    font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    margin: 0;
+  }
+
+  p { margin: 0; }
+}
+
+/* ── Anime background: shonen wallpaper + dark overlay ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  background-image:
+    linear-gradient(90deg,
+      rgba(3,5,18,.97) 0%,
+      rgba(3,5,18,.90) 38%,
+      rgba(3,5,18,.62) 72%,
+      rgba(3,5,18,.52) 100%),
+    url('/shonen-background-anime-v2.png');
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* ── Grid overlay ── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  opacity: .2;
+  background-image:
+    linear-gradient(rgba(138,143,255,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(138,143,255,.05) 1px, transparent 1px);
+  background-size: 46px 46px;
+  -webkit-mask-image: linear-gradient(to bottom, black, transparent 72%);
+  mask-image: linear-gradient(to bottom, black, transparent 72%);
+}
+
+/* ── Anime aura blobs ── */
+.anime-aura {
+  position: fixed;
+  z-index: 1;
+  width: 38vw;
+  height: 38vw;
+  max-width: 560px;
+  max-height: 560px;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(28px);
+  opacity: .15;
+  background: conic-gradient(from 40deg, transparent, #ff3e70, #783cff, transparent 55%, #1dd6ee, transparent);
+  animation: auraSpin 18s linear infinite;
+}
+.aura-one { top: -16vw; right: -8vw; }
+.aura-two { bottom: -19vw; left: -13vw; animation-direction: reverse; animation-duration: 25s; opacity: .12; }
+
+/* ── Manga speed lines ── */
+.manga-lines {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: .23;
+  background: repeating-conic-gradient(
+    from 210deg at 78% 17%,
+    transparent 0deg 4deg,
+    rgba(255,255,255,.13) 4.6deg 5deg,
+    transparent 5.4deg 10deg
+  );
+  -webkit-mask-image: radial-gradient(ellipse at 78% 17%, black, transparent 48%);
+  mask-image: radial-gradient(ellipse at 78% 17%, black, transparent 48%);
+  animation: linesPulse 6s ease-in-out infinite;
+}
+
+/* ── Ninja sky (moon, mountain, village) ── */
+.ninja-sky {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: .12;
+}
+.moon {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  right: 13%;
+  top: 7%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fff4c9 0 4%, #ffc56a 16%, #cf78ff 51%, rgba(110,52,255,.18) 68%, transparent 70%);
+  box-shadow: 0 0 34px rgba(255,165,91,.42), 0 0 100px rgba(138,73,255,.42);
+  animation: moonGlow 4s ease-in-out infinite;
+}
+.moon::after {
+  content: '';
+  position: absolute;
+  inset: 17px;
+  border-radius: 50%;
+  opacity: .3;
+  background:
+    radial-gradient(circle at 20% 42%, #7a3d9e 0 5%, transparent 6%),
+    radial-gradient(circle at 65% 22%, #6e368d 0 8%, transparent 9%),
+    radial-gradient(circle at 70% 72%, #7d4698 0 6%, transparent 7%);
+}
+.mountain {
+  position: absolute;
+  left: -5%;
+  bottom: 4%;
+  width: 110%;
+  height: 32%;
+  background: #08091c;
+  clip-path: polygon(0 90%,12% 63%,19% 77%,31% 36%,43% 72%,53% 45%,65% 78%,78% 29%,88% 67%,100% 45%,100% 100%,0 100%);
+  opacity: .94;
+}
+.mountain.back {
+  bottom: 13%;
+  height: 24%;
+  opacity: .4;
+  filter: blur(1px);
+  background: #303074;
+  transform: scaleX(1.08);
+}
+.village {
+  position: absolute;
+  bottom: 22%;
+  left: 0;
+  width: 100%;
+  height: 44px;
+  opacity: .5;
+  background: linear-gradient(90deg,
+    transparent 0 3%, #08091b 3% 5%, transparent 5% 8%, #08091b 8% 9%,
+    transparent 9% 13%, #08091b 13% 16%, transparent 16% 21%, #08091b 21% 24%,
+    transparent 24% 28%, #08091b 28% 30%, transparent 30% 36%, #08091b 36% 38%,
+    transparent 38% 45%, #08091b 45% 48%, transparent 48% 56%, #08091b 56% 58%,
+    transparent 58% 64%, #08091b 64% 67%, transparent 67% 73%, #08091b 73% 75%,
+    transparent 75% 82%, #08091b 82% 85%, transparent 85% 91%, #08091b 91% 94%,
+    transparent 94%);
+  filter: drop-shadow(0 0 9px rgba(255,108,61,.25));
+}
+.chakra-orb {
+  position: absolute;
+  left: 15%;
+  top: 38%;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ff6c3d;
+  box-shadow: 0 0 12px #ff6c3d, 0 0 42px #ff3e70;
+  animation: orbFloat 3.5s ease-in-out infinite;
+}
+
+/* ── Sakura petals ── */
+.petal {
+  position: fixed;
+  z-index: 3;
+  width: 8px;
+  height: 14px;
+  border-radius: 90% 0 90% 0;
+  background: linear-gradient(135deg, #ffd4ef, #e96cbf);
+  filter: blur(.2px);
+  animation: drift linear infinite;
+  pointer-events: none;
+  box-shadow: 0 0 12px rgba(255,122,211,.85);
+  opacity: .9;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(7,9,24,.6); }
+::-webkit-scrollbar-thumb { background: rgba(147,164,255,.2); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(154,77,255,.4); }
+
+/* ── Component helpers ── */
+.energy-ring {
+  position: absolute;
+  width: 84px;
+  height: 84px;
+  border: 1px solid rgba(57,220,255,.42);
+  border-radius: 50%;
+  right: 20px;
+  top: 20px;
+  opacity: .55;
+  animation: ringPulse 3.4s ease-out infinite;
+  pointer-events: none;
+}
+.energy-ring::before,
+.energy-ring::after {
+  content: '';
+  position: absolute;
+  inset: 9px;
+  border: 1px dashed rgba(255,91,158,.55);
+  border-radius: 50%;
+  animation: ringSpin 7s linear infinite;
+}
+.energy-ring::after {
+  inset: 20px;
+  border-color: rgba(255,216,91,.66);
+  animation-direction: reverse;
+  animation-duration: 4s;
+}
+
+/* ── Keyframes ── */
+@keyframes auraSpin { to { transform: rotate(360deg) scale(1.08); } }
+@keyframes linesPulse { 0%,100%{opacity:.09;transform:scale(1)} 50%{opacity:.22;transform:scale(1.04)} }
+@keyframes ringPulse { 0%{transform:scale(.65);opacity:.75} 100%{transform:scale(1.5);opacity:0} }
+@keyframes ringSpin { to { transform: rotate(360deg); } }
+@keyframes moonGlow { 0%,100%{filter:brightness(.92);transform:scale(1)} 50%{filter:brightness(1.12);transform:scale(1.025)} }
+@keyframes orbFloat { 0%,100%{transform:translate(0,0)} 50%{transform:translate(22px,-16px);box-shadow:0 0 17px #ff6c3d, 0 0 60px #ff3e70} }
+@keyframes starBlink { 0%,100%{opacity:.35;transform:scale(.8) rotate(0)} 50%{opacity:1;transform:scale(1.3) rotate(25deg)} }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+@keyframes rise { from{opacity:0;transform:translateY(15px)} to{opacity:1;transform:none} }
+@keyframes drift { 0%{transform:translate(0,-10vh) rotate(0deg);opacity:0} 10%{opacity:.75} 100%{transform:translate(120px,110vh) rotate(600deg);opacity:0} }
+@keyframes shine { 0%,42%{transform:translateX(-100%)} 62%,100%{transform:translateX(100%)} }
+@keyframes iconBurst { 0%,100%{transform:rotate(0) scale(1)} 35%{transform:rotate(-10deg) scale(1.13);filter:drop-shadow(0 0 10px #c064ff)} 70%{transform:rotate(8deg) scale(1.04)} }
+
+/* ── Reduce motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
