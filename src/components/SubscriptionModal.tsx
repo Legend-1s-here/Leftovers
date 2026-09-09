@@ -292,7 +292,7 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
           )}
 
           {/* Cost, Billing Cycle & Reset Hours */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.2fr', gap: 10 }}>
             <div>
               <label style={labelStyle}>Cost ($)</label>
               <input
@@ -304,26 +304,28 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
               />
             </div>
             <div>
-              <label style={labelStyle}>Billing</label>
+              <label style={labelStyle}>Billing Cycle</label>
               <select
                 value={billingCycle}
                 onChange={e => setBillingCycle(e.target.value as BillingCycle)}
                 style={{ ...inputStyle, cursor: 'pointer' }}
               >
+                <option value="weekly">Weekly (7d)</option>
+                <option value="bi-weekly">2 Weeks (14d)</option>
                 <option value="monthly">Monthly</option>
                 <option value="yearly">Yearly</option>
-                <option value="weekly">Weekly</option>
                 <option value="free">Free</option>
               </select>
             </div>
             <div>
-              <label style={labelStyle}>Limit (Hours)</label>
+              <label style={labelStyle}>Limit Reset (Max 2w)</label>
               <input
                 type="number"
                 min="1"
-                max="72"
+                max="336"
+                placeholder="Hours (max 336h)"
                 value={sessionDurationHours}
-                onChange={e => setSessionDurationHours(parseInt(e.target.value) || 5)}
+                onChange={e => setSessionDurationHours(Math.min(336, Math.max(1, parseInt(e.target.value) || 5)))}
                 style={inputStyle}
               />
             </div>

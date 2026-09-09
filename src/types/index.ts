@@ -7,7 +7,7 @@ export type ModelKey =
   | 'copilot'
   | 'custom';
 
-export type BillingCycle = 'monthly' | 'yearly' | 'weekly' | 'free';
+export type BillingCycle = 'monthly' | 'yearly' | 'weekly' | 'bi-weekly' | 'free';
 
 export interface Subscription {
   id: string;

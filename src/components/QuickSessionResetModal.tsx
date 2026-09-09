@@ -25,13 +25,22 @@ export const QuickSessionResetModal: React.FC<QuickSessionResetModalProps> = ({
   const handleSelectSub = (sub: Subscription) => {
     setSelectedSubId(sub.id);
     const meta = MODEL_CONFIGS[sub.model] || MODEL_CONFIGS.custom;
-    setHours(sub.sessionDurationHours || meta.defaultSessionHours);
+    setHours(Math.min(336, sub.sessionDurationHours || meta.defaultSessionHours));
   };
 
   const handleStart = () => {
     if (!selectedSub) return;
-    onTriggerReset(selectedSub, hours);
+    const clampedHours = Math.min(336, Math.max(1, hours)); // 2 weeks max (336 hours)
+    onTriggerReset(selectedSub, clampedHours);
     onClose();
+  };
+
+  const formatHoursLabel = (h: number) => {
+    if (h >= 24) {
+      const days = Math.round(h / 24);
+      return `${days} Day${days > 1 ? 's' : ''} (${h}h)`;
+    }
+    return `${h} Hour${h > 1 ? 's' : ''}`;
   };
 
   return (
@@ -50,7 +59,7 @@ export const QuickSessionResetModal: React.FC<QuickSessionResetModalProps> = ({
     >
       <div
         style={{
-          width: 'min(440px, calc(100% - 24px))',
+          width: 'min(460px, calc(100% - 24px))',
           padding: 26,
           borderRadius: 22,
           border: '1px solid rgba(255,185,61,.45)',
@@ -87,7 +96,7 @@ export const QuickSessionResetModal: React.FC<QuickSessionResetModalProps> = ({
               Hit Rate Limit? Start Cooldown
             </h2>
             <p style={{ color: '#c5a46a', fontSize: 12, marginTop: 2 }}>
-              Start a live countdown until your message limit resets
+              Start a live countdown (maximum 2 weeks at most)
             </p>
           </div>
         </div>
@@ -97,7 +106,7 @@ export const QuickSessionResetModal: React.FC<QuickSessionResetModalProps> = ({
           <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#aeb8d8', marginBottom: 6 }}>
             Select Active Account &amp; Model
           </label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 180, overflowY: 'auto', paddingRight: 4 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 160, overflowY: 'auto', paddingRight: 4 }}>
             {subscriptions.map(s => {
               const meta = MODEL_CONFIGS[s.model] || MODEL_CONFIGS.custom;
               const isSelected = s.id === (selectedSub?.id || '');
@@ -139,17 +148,25 @@ export const QuickSessionResetModal: React.FC<QuickSessionResetModalProps> = ({
           </div>
         </div>
 
-        {/* Cooldown duration presets */}
+        {/* Cooldown duration presets with max 2 weeks limit */}
         <div style={{ marginBottom: 20 }}>
-          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#aeb8d8', marginBottom: 6 }}>
-            Cooldown Window
-          </label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#aeb8d8' }}>
+              Cooldown Window Duration
+            </label>
+            <span style={{ fontSize: 11, color: '#ffd75e', fontWeight: 600 }}>
+              Max: 2 Weeks (336h)
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
             {[
-              { h: 1, label: '1h (AGY)' },
-              { h: 3, label: '3h (Codex)' },
-              { h: 5, label: '5h (Claude)' },
-              { h: 24, label: '24h' },
+              { h: 1, label: '1 Hour (AGY)' },
+              { h: 3, label: '3 Hours (Codex)' },
+              { h: 5, label: '5 Hours (Claude)' },
+              { h: 24, label: '1 Day (24h)' },
+              { h: 168, label: '1 Week (7d)' },
+              { h: 336, label: '2 Weeks Max (14d)' },
             ].map(({ h, label }) => (
               <button
                 type="button"
@@ -162,9 +179,10 @@ export const QuickSessionResetModal: React.FC<QuickSessionResetModalProps> = ({
                   background: hours === h ? '#ffd75e' : '#080d23',
                   color: hours === h ? '#070918' : 'var(--muted)',
                   fontWeight: hours === h ? 700 : 500,
-                  fontSize: 12,
+                  fontSize: 11,
                   cursor: 'pointer',
                   textAlign: 'center',
+                  fontFamily: 'inherit',
                 }}
               >
                 {label}
@@ -194,7 +212,7 @@ export const QuickSessionResetModal: React.FC<QuickSessionResetModalProps> = ({
               boxShadow: '0 6px 20px rgba(255,158,84,.35)',
             }}
           >
-            ⚡ Start {hours}h Countdown
+            ⚡ Start {formatHoursLabel(hours)}
           </button>
         </div>
       </div>

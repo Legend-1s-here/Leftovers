@@ -55,16 +55,19 @@ export function getSessionCountdown(resetIso?: string | null): {
   }
 
   const remainingSeconds = Math.floor(diffMs / 1000);
-  const hours = Math.floor(remainingSeconds / 3600);
+  const days = Math.floor(remainingSeconds / 86400);
+  const hours = Math.floor((remainingSeconds % 86400) / 3600);
   const minutes = Math.floor((remainingSeconds % 3600) / 60);
   const seconds = remainingSeconds % 60;
 
   const pad = (n: number) => n.toString().padStart(2, '0');
-  const formatted = hours > 0 
+  const formatted = days > 0
+    ? `${days}d ${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`
+    : hours > 0 
     ? `${hours}h ${pad(minutes)}m ${pad(seconds)}s`
     : `${minutes}m ${pad(seconds)}s`;
 
-  return { isLocked: true, formatted, hours, minutes, seconds, remainingSeconds };
+  return { isLocked: true, formatted, hours: days * 24 + hours, minutes, seconds, remainingSeconds };
 }
 
 export function getCycleProgress(startedDate?: string, renewalDate?: string): number {

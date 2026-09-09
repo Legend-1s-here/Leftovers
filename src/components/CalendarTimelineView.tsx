@@ -1,7 +1,6 @@
 import React from 'react';
 import { Subscription } from '../types';
 import { MODEL_CONFIGS } from '../constants/models';
-import { getDaysUntil } from '../utils/dateUtils';
 
 interface CalendarTimelineViewProps {
   subscriptions: Subscription[];
@@ -15,8 +14,9 @@ export const CalendarTimelineView: React.FC<CalendarTimelineViewProps> = ({
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // Maximum 2 weeks (14 days) limit
   const daysList: { date: Date; dateStr: string; label: string; isToday: boolean }[] = [];
-  for (let i = -2; i <= 30; i++) {
+  for (let i = 0; i < 14; i++) {
     const d = new Date(today);
     d.setDate(d.getDate() + i);
     const dateStr = d.toISOString().slice(0, 10);
@@ -46,17 +46,16 @@ export const CalendarTimelineView: React.FC<CalendarTimelineViewProps> = ({
     >
       <div style={{ paddingBottom: 16, borderBottom: '1px solid var(--line)', marginBottom: 20 }}>
         <h2 style={{ font: "700 18px 'Space Grotesk'", margin: 0, color: '#fff', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span>▣</span> 30-Day Renewal &amp; Reset Timeline
+          <span>▣</span> 2-Week Renewal &amp; Reset Timeline (14 Days Max)
         </h2>
         <p style={{ color: 'var(--muted)', fontSize: 13, marginTop: 4 }}>
-          Upcoming billing renewals and quotas across all accounts over the next month
+          Upcoming billing renewals and quotas across all accounts over the next 2 weeks (14-day limit)
         </p>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {daysList.map(({ dateStr, label, isToday }) => {
           const events = eventsByDay[dateStr] || [];
-          if (events.length === 0 && !isToday) return null;
 
           return (
             <div

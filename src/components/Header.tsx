@@ -38,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
   const tabs: { key: ViewMode; icon: string; label: string }[] = [
     { key: 'cards',     icon: '▦', label: 'Subscription Cards' },
     { key: 'accounts',  icon: '♧', label: 'Grouped by Gmail'  },
-    { key: 'calendar',  icon: '▣', label: '30-Day Timeline'   },
+    { key: 'calendar',  icon: '▣', label: '2-Week Timeline'   },
     { key: 'analytics', icon: '◴', label: 'Spend & Analytics' },
   ];
 
