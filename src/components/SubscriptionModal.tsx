@@ -318,16 +318,41 @@ export const SubscriptionModal: React.FC<SubscriptionModalProps> = ({
               </select>
             </div>
             <div>
-              <label style={labelStyle}>Limit Reset (Max 2w)</label>
+              <label style={labelStyle}>Limit Reset (Hours, Max 2w)</label>
               <input
                 type="number"
                 min="1"
                 max="336"
-                placeholder="Hours (max 336h)"
+                placeholder="Hours (1-336)"
                 value={sessionDurationHours}
-                onChange={e => setSessionDurationHours(Math.min(336, Math.max(1, parseInt(e.target.value) || 5)))}
+                onChange={e => setSessionDurationHours(Math.min(336, Math.max(1, parseInt(e.target.value) || 1)))}
                 style={inputStyle}
               />
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginTop: 6 }}>
+                {[
+                  { label: '5h', val: 5 },
+                  { label: '24h', val: 24 },
+                  { label: '7d (168h)', val: 168 },
+                  { label: '14d (336h)', val: 336 },
+                ].map(({ label, val }) => (
+                  <button
+                    type="button"
+                    key={val}
+                    onClick={() => setSessionDurationHours(val)}
+                    style={{
+                      fontSize: 10,
+                      padding: '2px 6px',
+                      borderRadius: 6,
+                      background: sessionDurationHours === val ? 'rgba(154,77,255,.3)' : 'rgba(140,70,255,.12)',
+                      border: sessionDurationHours === val ? '1px solid #9a4dff' : '1px solid rgba(140,70,255,.25)',
+                      color: sessionDurationHours === val ? '#fff' : '#d9caff',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
