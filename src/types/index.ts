@@ -51,5 +51,5 @@ export interface FilterState {
   account: string;
   model: string;
   status: FilterStatus;
-  sortBy: 'renewal' | 'account' | 'model' | 'cost';
+  sortBy: 'limit_reset' | 'renewal' | 'account' | 'model' | 'cost';
 }

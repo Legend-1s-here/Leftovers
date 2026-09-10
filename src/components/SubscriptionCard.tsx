@@ -114,9 +114,20 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
               {meta.icon}
             </div>
             <div>
-              <h3 style={{ font: "700 17px 'Space Grotesk'", margin: 0, color: '#fff' }}>
-                {sub.model === 'custom' && sub.customModelName ? sub.customModelName : meta.name}
-              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <h3 style={{ font: "700 17px 'Space Grotesk'", margin: 0, color: '#fff' }}>
+                  {sub.model === 'custom' && sub.customModelName ? sub.customModelName : meta.name}
+                </h3>
+                {session.isLocked ? (
+                  <span style={{ fontSize: 10, color: '#ffd76e', background: 'rgba(255,185,61,.18)', border: '1px solid rgba(255,185,61,.4)', padding: '2px 7px', borderRadius: 6, fontWeight: 700 }}>
+                    ⏱ Resets Soon
+                  </span>
+                ) : (
+                  <span style={{ fontSize: 10, color: '#4cdbac', background: 'rgba(76,219,172,.16)', border: '1px solid rgba(76,219,172,.35)', padding: '2px 7px', borderRadius: 6, fontWeight: 700 }}>
+                    ⚡ Limit Left
+                  </span>
+                )}
+              </div>
               <p style={{ marginTop: 4, color: 'var(--muted)', fontSize: 12 }}>{sub.plan}</p>
             </div>
           </div>

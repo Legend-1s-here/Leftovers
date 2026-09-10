@@ -69,12 +69,13 @@ export const AccountFilterBar: React.FC<AccountFilterBarProps> = ({
           value={filters.sortBy}
           onChange={e => onFilterChange({ ...filters, sortBy: e.target.value as any })}
           style={{
-            height: 38, padding: '0 13px', color: '#c2cae5',
-            border: '1px solid var(--line)', borderRadius: 12,
+            height: 38, padding: '0 13px', color: '#ffd75e',
+            border: '1px solid rgba(255,185,61,.35)', borderRadius: 12,
             background: '#0b112a', font: 'inherit', fontSize: 13,
-            cursor: 'pointer',
+            cursor: 'pointer', fontWeight: 600,
           }}
         >
+          <option value="limit_reset">⚡ Sort: Limit Remaining &amp; Reset Time</option>
           <option value="renewal">⇅  Sort: Renewal Date</option>
           <option value="account">Sort: Account</option>
           <option value="model">Sort: Model</option>

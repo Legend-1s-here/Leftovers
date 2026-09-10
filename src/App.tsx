@@ -34,7 +34,7 @@ export function App() {
     account: '',
     model: '',
     status: 'all',
-    sortBy: 'renewal',
+    sortBy: 'limit_reset',
   });
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -235,6 +235,31 @@ export function App() {
     if (filters.status !== 'all' && getSubscriptionStatus(sub) !== filters.status) return false;
     return true;
   }).sort((a, b) => {
+    if (filters.sortBy === 'limit_reset') {
+      const now = Date.now();
+      const getRemainingMs = (sub: Subscription) => {
+        if (!sub.sessionResetAt) return 0;
+        const diff = new Date(sub.sessionResetAt).getTime() - now;
+        return diff > 0 ? diff : 0;
+      };
+
+      const remA = getRemainingMs(a);
+      const remB = getRemainingMs(b);
+      const isLockedA = remA > 0;
+      const isLockedB = remB > 0;
+
+      // Cards that have limit left (not locked) appear at the top!
+      if (!isLockedA && isLockedB) return -1;
+      if (isLockedA && !isLockedB) return 1;
+
+      // For cards whose limits are locked, sort in ascending order of reset time (soonest first)
+      if (isLockedA && isLockedB) {
+        return remA - remB;
+      }
+
+      // For cards that both have limit left, sort by renewal date
+      return new Date(a.renewalDate).getTime() - new Date(b.renewalDate).getTime();
+    }
     if (filters.sortBy === 'renewal') return new Date(a.renewalDate).getTime() - new Date(b.renewalDate).getTime();
     if (filters.sortBy === 'account') return a.account.localeCompare(b.account);
     if (filters.sortBy === 'model')   return a.model.localeCompare(b.model);
