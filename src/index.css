@@ -145,12 +145,20 @@
   p { margin: 0; }
 }
 
-/* ── Anime background for Shonen ── */
-[data-theme="shonen"] body::before {
+/* ── Background Wallpapers for each theme ── */
+body::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: -3;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  transition: background-image 0.4s ease;
+}
+
+[data-theme="shonen"] body::before, :root:not([data-theme]) body::before {
   background-image:
     linear-gradient(90deg,
       rgba(3,5,18,.97) 0%,
@@ -158,10 +166,36 @@
       rgba(3,5,18,.62) 72%,
       rgba(3,5,18,.52) 100%),
     url('/shonen-background-anime-v2.png');
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
+}
+
+[data-theme="torii"] body::before {
+  background-image:
+    linear-gradient(90deg,
+      rgba(15,5,11,.96) 0%,
+      rgba(15,5,11,.88) 38%,
+      rgba(15,5,11,.55) 72%,
+      rgba(15,5,11,.45) 100%),
+    url('/themes/torii-sunset.png');
+}
+
+[data-theme="minimalist"] body::before {
+  background-image:
+    linear-gradient(90deg,
+      rgba(3,4,7,.97) 0%,
+      rgba(3,4,7,.88) 40%,
+      rgba(3,4,7,.65) 75%,
+      rgba(3,4,7,.5) 100%),
+    url('/themes/minimalist-dark.png');
+}
+
+[data-theme="lofi"] body::before {
+  background-image:
+    linear-gradient(90deg,
+      rgba(8,9,22,.96) 0%,
+      rgba(8,9,22,.88) 40%,
+      rgba(8,9,22,.55) 75%,
+      rgba(8,9,22,.45) 100%),
+    url('/themes/lofi-room.jpg');
 }
 
 /* ── Grid overlay ── */

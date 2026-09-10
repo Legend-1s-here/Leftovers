@@ -6,14 +6,14 @@ export interface ThemeConfig {
   shortName: string;
   icon: string;
   description: string;
-  bgImage?: string;
+  bgImage: string;
   accent: string;
   secondary: string;
   surfaceBg: string;
   lineColor: string;
   hasParticles: boolean;
   hasCanvas: boolean;
-  particleType: 'sakura' | 'embers' | 'none' | 'rain';
+  particleType: 'sakura' | 'embers' | 'minimalist' | 'rain';
 }
 
 export const THEMES: Record<ThemeMode, ThemeConfig> = {
@@ -27,7 +27,7 @@ export const THEMES: Record<ThemeMode, ThemeConfig> = {
     accent: '#9a4dff',
     secondary: '#29c8e8',
     surfaceBg: '#070918',
-    lineColor: 'rgba(144, 153, 220, 0.18)',
+    lineColor: 'rgba(147, 164, 255, 0.16)',
     hasParticles: true,
     hasCanvas: true,
     particleType: 'sakura',
@@ -37,11 +37,11 @@ export const THEMES: Record<ThemeMode, ThemeConfig> = {
     name: 'Torii Gate Sunset',
     shortName: 'Torii Sunset',
     icon: '⛩️',
-    description: 'Twilight crimson horizon with warm floating embers',
+    description: 'Japanese sunset lake, glowing Torii gate & floating crimson petals',
     bgImage: '/themes/torii-sunset.png',
-    accent: '#ff5e48',
-    secondary: '#ffb338',
-    surfaceBg: '#150a12',
+    accent: '#ff4d3d',
+    secondary: '#ffa03a',
+    surfaceBg: '#0f050b',
     lineColor: 'rgba(255, 110, 80, 0.22)',
     hasParticles: true,
     hasCanvas: true,
@@ -52,25 +52,26 @@ export const THEMES: Record<ThemeMode, ThemeConfig> = {
     name: 'Minimalist Dark Mode',
     shortName: 'OLED Minimal',
     icon: '🌑',
-    description: 'Deep OLED black, clean contrast, zero distractions',
+    description: 'Deep celestial navy-black with cyber light streaks & crisp contrast',
+    bgImage: '/themes/minimalist-dark.png',
     accent: '#e2e8f0',
-    secondary: '#64748b',
+    secondary: '#38bdf8',
     surfaceBg: '#030407',
-    lineColor: 'rgba(255, 255, 255, 0.1)',
-    hasParticles: false,
-    hasCanvas: false,
-    particleType: 'none',
+    lineColor: 'rgba(255, 255, 255, 0.12)',
+    hasParticles: true,
+    hasCanvas: true,
+    particleType: 'minimalist',
   },
   lofi: {
     id: 'lofi',
     name: 'Lo-Fi Study / Coding Room',
     shortName: 'Lo-Fi Room',
     icon: '🎧',
-    description: 'Cozy midnight lavender with gentle rain streaks',
-    bgImage: '/themes/lofi-room.png',
+    description: 'Rainy city window, cozy desk lamp & calming ambient glow',
+    bgImage: '/themes/lofi-room.jpg',
     accent: '#a78bfa',
     secondary: '#818cf8',
-    surfaceBg: '#0c0e1e',
+    surfaceBg: '#080916',
     lineColor: 'rgba(167, 139, 250, 0.2)',
     hasParticles: true,
     hasCanvas: false,
