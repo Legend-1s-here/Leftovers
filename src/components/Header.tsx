@@ -16,6 +16,9 @@ interface HeaderProps {
   user: User | null;
   onSignOut: () => void;
   onOpenAuth: () => void;
+  notificationPermission: NotificationPermission;
+  onRequestNotificationPermission: () => void;
+  onTestNotification: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -32,6 +35,9 @@ export const Header: React.FC<HeaderProps> = ({
   user,
   onSignOut,
   onOpenAuth,
+  notificationPermission,
+  onRequestNotificationPermission,
+  onTestNotification,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -146,6 +152,56 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>Sign In / Cloud Sync</span>
               </button>
             )}
+
+            {/* Browser Push & Audio Notifications Toggle */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              {notificationPermission === 'granted' ? (
+                <button
+                  onClick={onTestNotification}
+                  title="Notifications & Chime active! Click to test sound."
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '9px 13px',
+                    borderRadius: 12,
+                    background: 'rgba(76,219,172,.14)',
+                    border: '1px solid rgba(76,219,172,.35)',
+                    color: '#4cdbac',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  <span>🔔</span>
+                  <span>Alerts Active</span>
+                  <span style={{ fontSize: 10, opacity: 0.8, background: 'rgba(76,219,172,.2)', padding: '1px 5px', borderRadius: 4 }}>Test</span>
+                </button>
+              ) : (
+                <button
+                  onClick={onRequestNotificationPermission}
+                  title="Enable browser notifications and anime chime when quota is ready"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '9px 13px',
+                    borderRadius: 12,
+                    background: 'rgba(255,185,61,.14)',
+                    border: '1px solid rgba(255,185,61,.35)',
+                    color: '#ffd75e',
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  <span>🔔</span>
+                  <span>Enable Alerts</span>
+                </button>
+              )}
+            </div>
 
             <button
               onClick={onOpenQuickResetModal}

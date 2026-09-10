@@ -20,6 +20,7 @@ import {
   loadLocalSubscriptions,
 } from './services/storage';
 import { getSubscriptionStatus, formatExactDateTime } from './utils/dateUtils';
+import { notificationManager } from './utils/notificationUtils';
 import { supabase } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
 
@@ -43,6 +44,17 @@ export function App() {
   const [isQuickResetOpen, setIsQuickResetOpen] = useState(false);
   const [quickResetSub, setQuickResetSub] = useState<Subscription | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
+    notificationManager.getPermission()
+  );
+
+  // Background ticker to check when any quota countdown hits 00:00:00
+  useEffect(() => {
+    const timer = setInterval(() => {
+      notificationManager.checkAndNotify(subscriptions, showToast);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [subscriptions]);
 
   // Initialize Supabase Auth Session and handle confirmation link redirects
   useEffect(() => {
@@ -184,6 +196,20 @@ export function App() {
     showToast('Session lock cleared ✓');
   };
 
+  const handleRequestPermission = async () => {
+    const ok = await notificationManager.requestPermission();
+    setNotifPermission(notificationManager.getPermission());
+    if (ok) {
+      showToast('🔔 Browser push notifications & anime chime enabled!');
+    } else {
+      showToast('⚠️ Notification permission not granted');
+    }
+  };
+
+  const handleTestNotification = () => {
+    notificationManager.testNotification(showToast);
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -304,6 +330,9 @@ export function App() {
         user={user}
         onSignOut={handleSignOut}
         onOpenAuth={() => setShowAuthModal(true)}
+        notificationPermission={notifPermission}
+        onRequestNotificationPermission={handleRequestPermission}
+        onTestNotification={handleTestNotification}
       />
 
       {/* Main content shell */}
