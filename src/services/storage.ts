@@ -2,6 +2,7 @@ import { Subscription } from '../types';
 import { supabase } from '../lib/supabase';
 
 const STORAGE_KEY = 'ai_subscriptions_hub_v2';
+const INITIALIZED_KEY = 'quotaverse_initialized_v2';
 
 // ── Database to TypeScript Mapper ──
 function mapFromDB(row: any): Subscription {
@@ -68,17 +69,10 @@ export async function fetchUserSubscriptions(): Promise<Subscription[]> {
       return loadLocalSubscriptions();
     }
 
-    if (data && data.length > 0) {
+    if (data !== null) {
       const mapped = data.map(mapFromDB);
       saveLocalSubscriptions(mapped);
       return mapped;
-    }
-
-    // If new cloud user with 0 subscriptions, see if they had local subscriptions to migrate
-    const local = loadLocalSubscriptions();
-    if (local.length > 0) {
-      await syncAllToSupabase(local, user.id);
-      return local;
     }
 
     return [];
@@ -129,17 +123,30 @@ export async function syncAllToSupabase(subs: Subscription[], userId: string): P
 export function loadLocalSubscriptions(): Subscription[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return seedInitialData();
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : seedInitialData();
-  } catch {
+    if (raw !== null) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed; // Return actual stored items (even if empty after deletion)
+      }
+    }
+
+    // Only seed sample data ONCE if the user has never loaded the app before
+    const hasInitialized = localStorage.getItem(INITIALIZED_KEY);
+    if (hasInitialized) {
+      return [];
+    }
+
+    localStorage.setItem(INITIALIZED_KEY, 'true');
     return seedInitialData();
+  } catch {
+    return [];
   }
 }
 
 export function saveLocalSubscriptions(subs: Subscription[]): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(subs));
+    localStorage.setItem(INITIALIZED_KEY, 'true');
   } catch (err) {
     console.error(err);
   }
