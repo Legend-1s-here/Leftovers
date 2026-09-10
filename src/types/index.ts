@@ -44,6 +44,8 @@ export interface ModelMeta {
 
 export type ViewMode = 'cards' | 'accounts' | 'calendar' | 'analytics';
 
+export type ThemeMode = 'shonen' | 'torii' | 'minimalist' | 'lofi';
+
 export type FilterStatus = 'all' | 'active' | 'expiring' | 'expired' | 'session_locked';
 
 export interface FilterState {

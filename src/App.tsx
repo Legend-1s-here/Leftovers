@@ -10,7 +10,8 @@ import { AnalyticsView } from './components/AnalyticsView';
 import { SubscriptionModal } from './components/SubscriptionModal';
 import { QuickSessionResetModal } from './components/QuickSessionResetModal';
 import { AuthView } from './components/AuthView';
-import { Subscription, ViewMode, FilterState } from './types';
+import { Subscription, ViewMode, FilterState, ThemeMode } from './types';
+import { THEMES } from './constants/themes';
 import {
   fetchUserSubscriptions,
   saveSubscriptionToCloud,
@@ -30,6 +31,10 @@ export function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('cards');
+  const [theme, setTheme] = useState<ThemeMode>(() => {
+    const saved = localStorage.getItem('quotaverse_theme') as ThemeMode;
+    return saved && THEMES[saved] ? saved : 'shonen';
+  });
   const [filters, setFilters] = useState<FilterState>({
     search: '',
     account: '',
@@ -236,6 +241,12 @@ export function App() {
     e.target.value = '';
   };
 
+  const handleThemeChange = (newTheme: ThemeMode) => {
+    setTheme(newTheme);
+    localStorage.setItem('quotaverse_theme', newTheme);
+    showToast(`Visual theme set to ${THEMES[newTheme].name} ✦`);
+  };
+
   const handleResetData = async () => {
     if (confirm('Reset to sample data? Current items will be replaced.')) {
       localStorage.removeItem('ai_subscriptions_hub_v2');
@@ -297,8 +308,8 @@ export function App() {
 
   return (
     <div style={{ minHeight: '100vh', color: 'var(--text)', overflowX: 'hidden' }}>
-      {/* Anime layer: background, canvas, sakura, auras */}
-      <AnimeBackground />
+      {/* Anime layer: background, canvas, sakura, auras, embers, rain */}
+      <AnimeBackground theme={theme} />
 
       {/* Toast notification */}
       {toast && (
@@ -319,6 +330,8 @@ export function App() {
       <Header
         viewMode={viewMode}
         onViewModeChange={setViewMode}
+        theme={theme}
+        onThemeChange={handleThemeChange}
         onOpenAddModal={() => { setEditingSub(null); setPrefilledAccount(''); setIsAddModalOpen(true); }}
         onOpenQuickResetModal={() => { setQuickResetSub(null); setIsQuickResetOpen(true); }}
         onExportJSON={() => { exportSubscriptionsAsJSON(subscriptions); showToast('JSON backup exported'); }}

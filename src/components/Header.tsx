@@ -1,10 +1,13 @@
-import React, { useRef } from 'react';
-import { ViewMode } from '../types';
+import React, { useRef, useState } from 'react';
+import { ViewMode, ThemeMode } from '../types';
+import { THEMES } from '../constants/themes';
 import { User } from '@supabase/supabase-js';
 
 interface HeaderProps {
   viewMode: ViewMode;
   onViewModeChange: (mode: ViewMode) => void;
+  theme: ThemeMode;
+  onThemeChange: (theme: ThemeMode) => void;
   onOpenAddModal: () => void;
   onOpenQuickResetModal: () => void;
   onExportJSON: () => void;
@@ -35,11 +38,14 @@ export const Header: React.FC<HeaderProps> = ({
   user,
   onSignOut,
   onOpenAuth,
+  theme,
+  onThemeChange,
   notificationPermission,
   onRequestNotificationPermission,
   onTestNotification,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isThemePickerOpen, setIsThemePickerOpen] = useState(false);
 
   const tabs: { key: ViewMode; icon: string; label: string }[] = [
     { key: 'cards',     icon: '▦', label: 'Subscription Cards' },
@@ -152,6 +158,93 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>Sign In / Cloud Sync</span>
               </button>
             )}
+
+            {/* Visual Theme Switcher Dropdown */}
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setIsThemePickerOpen(prev => !prev)}
+                title="Switch visual background theme"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 7,
+                  padding: '9px 13px',
+                  borderRadius: 12,
+                  background: 'rgba(154,77,255,.14)',
+                  border: '1px solid rgba(154,77,255,.35)',
+                  color: '#e6d7ff',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                }}
+              >
+                <span>{THEMES[theme].icon}</span>
+                <span>{THEMES[theme].shortName}</span>
+                <span style={{ fontSize: 9, opacity: 0.7 }}>▾</span>
+              </button>
+
+              {isThemePickerOpen && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 8px)',
+                    right: 0,
+                    zIndex: 60,
+                    width: 270,
+                    padding: 8,
+                    borderRadius: 16,
+                    background: 'linear-gradient(145deg, #131938, #0b0f24)',
+                    border: '1px solid rgba(154,77,255,.45)',
+                    boxShadow: '0 20px 60px rgba(10,5,30,.85)',
+                    backdropFilter: 'blur(16px)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6,
+                  }}
+                >
+                  <div style={{ padding: '6px 8px 4px', fontSize: 11, fontWeight: 700, color: 'var(--muted)', letterSpacing: '.5px', textTransform: 'uppercase' }}>
+                    Select Visual Theme
+                  </div>
+                  {Object.values(THEMES).map(t => {
+                    const isSelected = theme === t.id;
+                    return (
+                      <button
+                        type="button"
+                        key={t.id}
+                        onClick={() => {
+                          onThemeChange(t.id);
+                          setIsThemePickerOpen(false);
+                        }}
+                        style={{
+                          padding: '8px 10px',
+                          borderRadius: 10,
+                          border: isSelected ? `1px solid ${t.accent}` : '1px solid transparent',
+                          background: isSelected ? 'rgba(154,77,255,.22)' : 'transparent',
+                          color: isSelected ? '#fff' : '#c2cae5',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 10,
+                          textAlign: 'left',
+                          fontFamily: 'inherit',
+                          transition: 'all .15s',
+                        }}
+                      >
+                        <span style={{ fontSize: 20 }}>{t.icon}</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 12, fontWeight: isSelected ? 700 : 600 }}>{t.name}</div>
+                          <div style={{ fontSize: 10, color: 'var(--muted)' }}>{t.description}</div>
+                        </div>
+                        {isSelected && (
+                          <span style={{ width: 6, height: 6, borderRadius: '50%', background: t.accent, boxShadow: `0 0 6px ${t.accent}` }} />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             {/* Browser Push & Audio Notifications Toggle */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

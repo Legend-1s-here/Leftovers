@@ -255,6 +255,17 @@ body::after {
 @keyframes drift { 0%{transform:translate(0,-10vh) rotate(0deg);opacity:0} 10%{opacity:.75} 100%{transform:translate(120px,110vh) rotate(600deg);opacity:0} }
 @keyframes shine { 0%,42%{transform:translateX(-100%)} 62%,100%{transform:translateX(100%)} }
 @keyframes iconBurst { 0%,100%{transform:rotate(0) scale(1)} 35%{transform:rotate(-10deg) scale(1.13);filter:drop-shadow(0 0 10px #c064ff)} 70%{transform:rotate(8deg) scale(1.04)} }
+@keyframes floatUp {
+  0% { transform: translateY(0) scale(0.8) rotate(0deg); opacity: 0; }
+  20% { opacity: 0.8; }
+  80% { opacity: 0.6; }
+  100% { transform: translateY(-105vh) scale(1.2) rotate(360deg); opacity: 0; }
+}
+@keyframes rainFall {
+  0% { transform: translateY(-50px); opacity: 0; }
+  30% { opacity: 0.6; }
+  100% { transform: translateY(105vh); opacity: 0; }
+}
 
 /* ── Reduce motion ── */
 @media (prefers-reduced-motion: reduce) {
