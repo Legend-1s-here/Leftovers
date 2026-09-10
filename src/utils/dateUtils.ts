@@ -35,6 +35,57 @@ export function formatTimeDisplay(isoString?: string | null): string {
   }
 }
 
+/** Formats date & time in the exact format: 9/11/2026, 2:01:07 AM */
+export function formatExactDateTime(isoString?: string | null): string {
+  if (!isoString) return '—';
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return '—';
+    return d.toLocaleString('en-US', {
+      month: 'numeric',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+    });
+  } catch {
+    return '—';
+  }
+}
+
+/** Parses flexible user input dates like "9/11/2026, 2:01:07 AM", "2026-09-11 02:01", ISO strings etc. */
+export function parseFlexibleDateTime(input: string): Date | null {
+  if (!input || !input.trim()) return null;
+  const cleaned = input.trim();
+  
+  // Try standard Date parsing
+  const d1 = new Date(cleaned);
+  if (!isNaN(d1.getTime())) return d1;
+
+  // Try parsing "M/D/YYYY, H:M:S AM/PM" or "M/D/YYYY H:M:S AM/PM"
+  const usFormatRegex = /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})(?:[,\s]+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?\s*(AM|PM)?)?$/i;
+  const match = cleaned.match(usFormatRegex);
+  if (match) {
+    const month = parseInt(match[1], 10) - 1;
+    const day = parseInt(match[2], 10);
+    const year = parseInt(match[3], 10);
+    let hour = match[4] ? parseInt(match[4], 10) : 0;
+    const minute = match[5] ? parseInt(match[5], 10) : 0;
+    const second = match[6] ? parseInt(match[6], 10) : 0;
+    const ampm = match[7]?.toUpperCase();
+
+    if (ampm === 'PM' && hour < 12) hour += 12;
+    if (ampm === 'AM' && hour === 12) hour = 0;
+
+    const parsed = new Date(year, month, day, hour, minute, second);
+    if (!isNaN(parsed.getTime())) return parsed;
+  }
+
+  return null;
+}
+
 export function getSessionCountdown(resetIso?: string | null): {
   isLocked: boolean;
   formatted: string;

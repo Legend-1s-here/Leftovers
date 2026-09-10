@@ -3,6 +3,7 @@ import { Subscription } from '../types';
 import { MODEL_CONFIGS } from '../constants/models';
 import {
   formatDateDisplay,
+  formatExactDateTime,
   getDaysUntil,
   getSessionCountdown,
   getCycleProgress,
@@ -15,6 +16,7 @@ interface SubscriptionCardProps {
   onDelete: (id: string) => void;
   onTriggerSessionReset: (sub: Subscription, hours: number) => void;
   onClearSessionReset: (id: string) => void;
+  onOpenExactTimeModal?: (sub: Subscription) => void;
 }
 
 export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
@@ -23,6 +25,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   onDelete,
   onTriggerSessionReset,
   onClearSessionReset,
+  onOpenExactTimeModal,
 }) => {
   const [, setTick] = useState(0);
   const [hovered, setHovered] = useState(false);
@@ -48,7 +51,6 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   const b = badge();
 
   /* ----- progress colors ----- */
-  const progressClass = status === 'expired' ? '' : status === 'expiring' ? 'orange' : 'blue';
   const progressGrad = status === 'expired'
     ? 'linear-gradient(90deg, #fd5b5f, #ff4568)'
     : status === 'expiring'
@@ -69,13 +71,16 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
       onMouseLeave={() => setHovered(false)}
       style={{
         position: 'relative',
-        padding: 19,
-        minHeight: 345,
+        padding: '24px 22px 24px',
+        minHeight: 410,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
         border: hovered ? '1px solid rgba(159,114,255,.72)' : '1px solid var(--line)',
-        borderTop: `2px solid ${accentColor}`,
-        borderRadius: 17,
-        background: 'linear-gradient(145deg, rgba(16,25,53,.92), rgba(10,15,34,.93))',
-        boxShadow: hovered ? '0 24px 55px rgba(28,15,75,.42)' : 'var(--shadow)',
+        borderTop: `3px solid ${accentColor}`,
+        borderRadius: 20,
+        background: 'linear-gradient(145deg, rgba(16,25,53,.94), rgba(10,15,34,.96))',
+        boxShadow: hovered ? '0 28px 65px rgba(28,15,75,.48)' : 'var(--shadow)',
         overflow: 'hidden',
         transition: 'transform .28s, border-color .28s, box-shadow .28s',
         transform: hovered ? 'translateY(-6px)' : 'none',
@@ -88,137 +93,206 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
       {/* Top glare */}
       <div style={{
         position: 'absolute', top: -65, right: -30,
-        width: 155, height: 150, pointerEvents: 'none',
-        background: 'radial-gradient(circle, rgba(59,126,255,.16), transparent 68%)',
+        width: 175, height: 170, pointerEvents: 'none',
+        background: 'radial-gradient(circle, rgba(59,126,255,.18), transparent 68%)',
       }} />
 
-      {/* "// QUOTA LINK" manga text */}
-      <span style={{
-        position: 'absolute', right: 15, bottom: 11,
-        color: 'rgba(162,181,255,.27)', font: "9px 'Space Grotesk'",
-        letterSpacing: '1.4px', transform: 'skew(-15deg)', pointerEvents: 'none',
-      }}>// QUOTA LINK</span>
-
-      {/* Card head */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
-        <div style={{ display: 'flex', gap: 11, alignItems: 'center' }}>
-          <div
-            style={{
-              width: 43, height: 43, display: 'grid', placeItems: 'center',
-              borderRadius: 13,
-              background: `${accentColor}22`,
-              border: `1px solid ${accentColor}44`,
-              fontSize: 22,
-              transition: 'all .3s',
-            }}
-          >
-            {meta.icon}
+      {/* Top Card Head */}
+      <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <div
+              style={{
+                width: 48, height: 48, display: 'grid', placeItems: 'center',
+                borderRadius: 15,
+                background: `${accentColor}22`,
+                border: `1px solid ${accentColor}44`,
+                fontSize: 24,
+                transition: 'all .3s',
+              }}
+            >
+              {meta.icon}
+            </div>
+            <div>
+              <h3 style={{ font: "700 17px 'Space Grotesk'", margin: 0, color: '#fff' }}>
+                {sub.model === 'custom' && sub.customModelName ? sub.customModelName : meta.name}
+              </h3>
+              <p style={{ marginTop: 4, color: 'var(--muted)', fontSize: 12 }}>{sub.plan}</p>
+            </div>
           </div>
-          <div>
-            <h3 style={{ font: "700 16px 'Space Grotesk'", margin: 0 }}>
-              {sub.model === 'custom' && sub.customModelName ? sub.customModelName : meta.name}
-            </h3>
-            <p style={{ marginTop: 3, color: 'var(--muted)', fontSize: 11 }}>{sub.plan}</p>
+          <span style={{ padding: '7px 11px', borderRadius: 10, fontSize: 11, whiteSpace: 'pre-line', textAlign: 'right', fontWeight: 600, ...b.style }}>
+            {b.text}
+          </span>
+        </div>
+
+        {/* Account pill */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 9,
+          marginTop: 18, padding: '11px 14px',
+          border: '1px solid rgba(131,147,221,.16)',
+          borderRadius: 12, background: 'rgba(4,9,25,.55)',
+          color: '#d7def4', fontSize: 12,
+        }}>
+          <i style={{ width: 9, height: 9, borderRadius: '50%', background: sub.accountColor || '#4cdbac', boxShadow: `0 0 10px ${sub.accountColor || '#4cdbac'}`, display: 'inline-block' }} />
+          <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{sub.account}</span>
+          {sub.accountTag && (
+            <span style={{ marginLeft: 'auto', color: '#a992ff', background: 'rgba(144,75,255,.2)', padding: '4px 8px', borderRadius: 6, fontSize: 10, fontWeight: 600 }}>
+              {sub.accountTag}
+            </span>
+          )}
+        </div>
+
+        {/* Live cooldown timer & exact refresh timestamp */}
+        {session.isLocked && (
+          <div style={{
+            marginTop: 18, padding: 14,
+            border: '1px solid rgba(255,185,61,.45)',
+            borderRadius: 14, background: 'rgba(70,42,27,.4)',
+            color: '#ffd760',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <small style={{ display: 'block', color: '#ffd760', fontSize: 11, fontWeight: 600, marginBottom: 3 }}>
+                  ◷ Quota Unlocks In:
+                </small>
+                <span className="countdown" style={{ font: "700 18px 'Space Grotesk'", letterSpacing: '.4px', color: '#fff' }}>
+                  {session.formatted}
+                </span>
+              </div>
+              <button
+                onClick={() => onClearSessionReset(sub.id)}
+                style={{
+                  color: '#ffdb6d',
+                  fontSize: 11,
+                  padding: '4px 8px',
+                  borderRadius: 6,
+                  background: 'rgba(255,185,61,.18)',
+                  border: '1px solid rgba(255,185,61,.3)',
+                  cursor: 'pointer',
+                  font: 'inherit',
+                  fontWeight: 600,
+                }}
+              >
+                Clear Lock
+              </button>
+            </div>
+
+            {/* Exact Timestamp Display */}
+            {sub.sessionResetAt && (
+              <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,185,61,.2)', fontSize: 11, color: '#f3cf8a', display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span>✦ Refreshes on:</span>
+                <strong style={{ color: '#fff', letterSpacing: '.2px' }}>{formatExactDateTime(sub.sessionResetAt)}</strong>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Key Details Grid */}
+        <div style={{ marginTop: 18, display: 'grid', gap: 11, color: 'var(--muted)', fontSize: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>▣ Renewal / Reset Date</span>
+            <strong style={{ color: '#e7ebff', fontSize: 12 }}>{formatDateDisplay(sub.renewalDate)}</strong>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Cost / Billing</span>
+            <strong style={{ color: 'var(--green)', fontSize: 12 }}>
+              ${sub.cost} <small style={{ color: 'var(--muted)' }}>/{sub.billingCycle}</small>
+            </strong>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>Default Rolling Limit</span>
+            <strong style={{ color: '#d9caff', fontSize: 12 }}>
+              {sub.sessionDurationHours || meta.defaultSessionHours} Hours
+            </strong>
           </div>
         </div>
-        <span style={{ padding: '7px 10px', borderRadius: 10, fontSize: 11, whiteSpace: 'pre-line', textAlign: 'right', ...b.style }}>
-          {b.text}
-        </span>
-      </div>
 
-      {/* Account pill */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 8,
-        marginTop: 17, padding: '10px 12px',
-        border: '1px solid rgba(131,147,221,.14)',
-        borderRadius: 11, background: 'rgba(4,9,25,.44)',
-        color: '#d7def4', fontSize: 12,
-      }}>
-        <i style={{ width: 8, height: 8, borderRadius: '50%', background: sub.accountColor || '#4cdbac', boxShadow: `0 0 9px ${sub.accountColor || '#4cdbac'}`, display: 'inline-block' }} />
-        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sub.account}</span>
-        {sub.accountTag && (
-          <span style={{ marginLeft: 'auto', color: '#a992ff', background: 'rgba(144,75,255,.2)', padding: '4px 7px', borderRadius: 6, fontSize: 10 }}>
-            {sub.accountTag}
-          </span>
+        {/* Cycle progress bar */}
+        <div style={{ marginTop: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6, color: 'var(--muted)', fontSize: 11 }}>
+            <span>Billing Cycle Progress</span>
+            <span style={{ fontWeight: 600, color: '#e7ebff' }}>{cyclePct}% Elapsed</span>
+          </div>
+          <div style={{ height: 6, overflow: 'hidden', borderRadius: 99, background: '#171e3d' }}>
+            <i style={{ display: 'block', height: '100%', borderRadius: 99, width: `${cyclePct}%`, background: progressGrad, boxShadow: progressGlow }} />
+          </div>
+        </div>
+
+        {/* Notes */}
+        {sub.notes && (
+          <div style={{ marginTop: 14, color: 'var(--muted)', fontSize: 11, fontStyle: 'italic', background: 'rgba(10,15,34,.5)', padding: '6px 10px', borderRadius: 8, border: '1px solid rgba(131,147,221,.1)' }}>
+            "{sub.notes}"
+          </div>
         )}
       </div>
 
-      {/* Live cooldown timer (if rate-locked) */}
-      {session.isLocked && (
-        <div style={{
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          marginTop: 18, padding: 13,
-          border: '1px solid rgba(255,185,61,.38)',
-          borderRadius: 13, background: 'rgba(70,42,27,.35)',
-          color: '#ffd760',
-        }}>
-          <div>
-            <small style={{ display: 'block', color: '#c5a46a', fontSize: 10, marginBottom: 3 }}>◷ Quota Unlocks In:</small>
-            <span className="countdown" style={{ font: "700 17px 'Space Grotesk'", letterSpacing: '.4px' }}>{session.formatted}</span>
-          </div>
-          <button
-            onClick={() => onClearSessionReset(sub.id)}
-            style={{ color: '#ffdb6d', fontSize: 11, textDecoration: 'underline', background: 'transparent', border: 0, cursor: 'pointer', font: 'inherit' }}
-          >
-            Clear Lock
-          </button>
-        </div>
-      )}
-
-      {/* Details */}
-      <div style={{ marginTop: 18, display: 'grid', gap: 12, color: 'var(--muted)', fontSize: 12 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-          <span>▣ Renewal / Reset Date</span>
-          <strong style={{ color: '#e7ebff', fontSize: 12 }}>{formatDateDisplay(sub.renewalDate)}</strong>
-        </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-          <span>Cost / Billing</span>
-          <strong style={{ color: 'var(--green)', fontSize: 12 }}>
-            ${sub.cost} <small style={{ color: 'var(--muted)' }}>/{sub.billingCycle}</small>
-          </strong>
-        </div>
-      </div>
-
-      {/* Cycle progress bar */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', margin: '16px 0 7px', color: 'var(--muted)', fontSize: 11 }}>
-        <span>Billing Cycle</span><span>{cyclePct}% Elapsed</span>
-      </div>
-      <div style={{ height: 5, overflow: 'hidden', borderRadius: 99, background: '#1b2344' }}>
-        <i style={{ display: 'block', height: '100%', borderRadius: 99, width: `${cyclePct}%`, background: progressGrad, boxShadow: progressGlow }} />
-      </div>
-
-      {/* Notes */}
-      {sub.notes && (
-        <div style={{ marginTop: 12, color: 'var(--muted)', fontSize: 11, fontStyle: 'italic' }}>
-          {sub.notes}
-        </div>
-      )}
-
-      {/* Footer action buttons */}
+      {/* Bottom Action Bar */}
       <div style={{
-        position: 'absolute', bottom: 16, left: 19, right: 19,
-        display: 'flex', justifyContent: 'space-between', gap: 8,
+        marginTop: 20,
+        paddingTop: 14,
+        borderTop: '1px solid rgba(144,153,220,.1)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: 8,
       }}>
         <button
-          onClick={() => onTriggerSessionReset(sub, sub.sessionDurationHours || meta.defaultSessionHours)}
+          onClick={() => {
+            if (onOpenExactTimeModal) {
+              onOpenExactTimeModal(sub);
+            } else {
+              onTriggerSessionReset(sub, sub.sessionDurationHours || meta.defaultSessionHours);
+            }
+          }}
+          title="Click to set exact refresh time or start limit cooldown"
           style={{
-            padding: '7px 10px', color: '#ffc95a',
-            border: '1px solid rgba(202,146,54,.4)', borderRadius: 8,
-            background: 'rgba(70,42,27,.3)', fontSize: 11, cursor: 'pointer', font: 'inherit',
+            padding: '8px 12px',
+            color: '#ffc95a',
+            border: '1px solid rgba(202,146,54,.45)',
+            borderRadius: 10,
+            background: 'rgba(70,42,27,.35)',
+            fontSize: 11,
+            fontWeight: 700,
+            cursor: 'pointer',
+            font: 'inherit',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
           }}
         >
-          ϟ Hit Limit ({sub.sessionDurationHours || meta.defaultSessionHours}h)
+          <span>⏱</span>
+          <span>Set Refresh Time</span>
         </button>
+
         <div style={{ display: 'flex', gap: 6 }}>
           <button
             onClick={() => onEdit(sub)}
-            style={{ padding: '7px 10px', color: '#aab4d4', border: '1px solid rgba(144,160,232,.16)', borderRadius: 8, background: 'rgba(24,33,66,.63)', fontSize: 11, cursor: 'pointer', font: 'inherit' }}
+            style={{
+              padding: '8px 12px',
+              color: '#d7def4',
+              border: '1px solid rgba(144,160,232,.2)',
+              borderRadius: 10,
+              background: 'rgba(24,33,66,.7)',
+              fontSize: 11,
+              fontWeight: 600,
+              cursor: 'pointer',
+              font: 'inherit',
+            }}
           >
             ✏ Edit
           </button>
           <button
             onClick={() => onDelete(sub.id)}
-            style={{ padding: '7px 10px', color: '#ff8ba1', border: '1px solid rgba(239,91,121,.2)', borderRadius: 8, background: 'rgba(132,30,60,.12)', fontSize: 11, cursor: 'pointer', font: 'inherit' }}
+            style={{
+              padding: '8px 11px',
+              color: '#ff8ba1',
+              border: '1px solid rgba(239,91,121,.25)',
+              borderRadius: 10,
+              background: 'rgba(132,30,60,.16)',
+              fontSize: 11,
+              cursor: 'pointer',
+              font: 'inherit',
+            }}
           >
             🗑
           </button>

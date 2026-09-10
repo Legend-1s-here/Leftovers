@@ -19,7 +19,7 @@ import {
   exportSubscriptionsAsCSV,
   loadLocalSubscriptions,
 } from './services/storage';
-import { getSubscriptionStatus } from './utils/dateUtils';
+import { getSubscriptionStatus, formatExactDateTime } from './utils/dateUtils';
 import { supabase } from './lib/supabase';
 import { User } from '@supabase/supabase-js';
 
@@ -41,11 +41,11 @@ export function App() {
   const [editingSub, setEditingSub] = useState<Subscription | null>(null);
   const [prefilledAccount, setPrefilledAccount] = useState('');
   const [isQuickResetOpen, setIsQuickResetOpen] = useState(false);
+  const [quickResetSub, setQuickResetSub] = useState<Subscription | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   // Initialize Supabase Auth Session and handle confirmation link redirects
   useEffect(() => {
-    // Check URL parameters for confirmation or errors
     const hash = window.location.hash;
     const search = window.location.search;
     
@@ -61,7 +61,6 @@ export function App() {
       setUser(session?.user ?? null);
       setAuthLoading(false);
       if (session) {
-        // Clean URL hash if logged in via confirmation link
         if (window.location.hash.includes('access_token')) {
           window.history.replaceState(null, '', window.location.pathname);
           showToast('Email confirmed & signed in! ✦');
@@ -100,7 +99,7 @@ export function App() {
 
   const showToast = (msg: string) => {
     setToast(msg);
-    setTimeout(() => setToast(null), 3500);
+    setTimeout(() => setToast(null), 4000);
   };
 
   const handleSave = async (
@@ -143,20 +142,31 @@ export function App() {
     }
   };
 
-  const handleTriggerSessionReset = async (sub: Subscription, hours: number) => {
-    const reset = new Date();
-    reset.setHours(reset.getHours() + hours);
+  const handleTriggerSessionReset = async (sub: Subscription, hoursOrDate: number | Date | string) => {
+    let reset: Date;
+    let durationHours = sub.sessionDurationHours || 5;
+
+    if (typeof hoursOrDate === 'number') {
+      reset = new Date();
+      reset.setHours(reset.getHours() + hoursOrDate);
+      durationHours = hoursOrDate;
+    } else {
+      reset = typeof hoursOrDate === 'string' ? new Date(hoursOrDate) : hoursOrDate;
+      const diffHours = Math.max(1, Math.round((reset.getTime() - Date.now()) / (1000 * 3600)));
+      durationHours = Math.min(336, diffHours);
+    }
+
     const updated = {
       ...sub,
       sessionResetAt: reset.toISOString(),
-      sessionDurationHours: hours,
+      sessionDurationHours: durationHours,
       updatedAt: new Date().toISOString(),
     };
     setSubscriptions(prev =>
       prev.map(s => s.id === sub.id ? updated : s)
     );
     await saveSubscriptionToCloud(updated);
-    showToast(`⏱ ${hours}h cooldown started for ${sub.account}`);
+    showToast(`⏱ Refresh set to ${formatExactDateTime(reset.toISOString())}`);
   };
 
   const handleClearSessionReset = async (id: string) => {
@@ -203,6 +213,7 @@ export function App() {
   const handleResetData = async () => {
     if (confirm('Reset to sample data? Current items will be replaced.')) {
       localStorage.removeItem('ai_subscriptions_hub_v2');
+      localStorage.removeItem('quotaverse_initialized_v2');
       const sample = loadLocalSubscriptions();
       setSubscriptions(sample);
       if (user) {
@@ -244,7 +255,7 @@ export function App() {
           position: 'fixed', bottom: 24, right: 24, zIndex: 100,
           background: 'linear-gradient(135deg, #993dff, #6328dc)',
           color: '#fff', fontSize: 13, fontWeight: 700,
-          padding: '10px 18px', borderRadius: 14,
+          padding: '12px 20px', borderRadius: 14,
           boxShadow: '0 12px 40px rgba(111,41,228,.45)',
           border: '1px solid rgba(169,100,255,.4)',
           animation: 'rise .3s both',
@@ -258,7 +269,7 @@ export function App() {
         viewMode={viewMode}
         onViewModeChange={setViewMode}
         onOpenAddModal={() => { setEditingSub(null); setPrefilledAccount(''); setIsAddModalOpen(true); }}
-        onOpenQuickResetModal={() => setIsQuickResetOpen(true)}
+        onOpenQuickResetModal={() => { setQuickResetSub(null); setIsQuickResetOpen(true); }}
         onExportJSON={() => { exportSubscriptionsAsJSON(subscriptions); showToast('JSON backup exported'); }}
         onExportCSV={() => { exportSubscriptionsAsCSV(subscriptions); showToast('CSV exported'); }}
         onImportJSON={handleImportJSON}
@@ -280,8 +291,8 @@ export function App() {
           filtered.length > 0 ? (
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: 19,
+              gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))',
+              gap: 22,
             }}>
               {filtered.map((sub, i) => (
                 <div key={sub.id} style={{ animationDelay: `${i * 0.06}s` }}>
@@ -291,6 +302,7 @@ export function App() {
                     onDelete={handleDelete}
                     onTriggerSessionReset={handleTriggerSessionReset}
                     onClearSessionReset={handleClearSessionReset}
+                    onOpenExactTimeModal={s => { setQuickResetSub(s); setIsQuickResetOpen(true); }}
                   />
                 </div>
               ))}
@@ -397,12 +409,13 @@ export function App() {
         initialAccount={prefilledAccount}
       />
 
-      {/* Quick Rate-limit Cooldown Reset Modal */}
+      {/* Quick Rate-limit Cooldown / Manual Date-Time Reset Modal */}
       <QuickSessionResetModal
         isOpen={isQuickResetOpen}
-        onClose={() => setIsQuickResetOpen(false)}
+        onClose={() => { setIsQuickResetOpen(false); setQuickResetSub(null); }}
         subscriptions={subscriptions}
         onTriggerReset={handleTriggerSessionReset}
+        initialSubscription={quickResetSub}
       />
     </div>
   );
