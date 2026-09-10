@@ -1,6 +1,8 @@
-# 🌌 QuotaVerse — Multi-Account AI Quota & Subscription Tracker
-
 <div align="center">
+
+<img src="./public/quotaverse-banner.png" alt="QuotaVerse AI Command Center Banner" width="100%" />
+
+# 🌌 QuotaVerse — Multi-Account AI Quota & Subscription Tracker
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-quotaverse--beta.vercel.app-00f2fe?style=for-the-badge&logo=vercel)](https://quotaverse-beta.vercel.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
