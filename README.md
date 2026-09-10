@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./public/quotaverse-banner.png" alt="QuotaVerse AI Command Center Banner" width="100%" />
+<img src="quotaverse-banner.png" alt="QuotaVerse AI Command Center Banner" width="100%" />
 
 # 🌌 QuotaVerse — Multi-Account AI Quota & Subscription Tracker
 
