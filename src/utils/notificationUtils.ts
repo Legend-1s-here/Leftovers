@@ -5,6 +5,17 @@ import { Subscription } from '../types';
 class NotificationManager {
   private notifiedSet = new Set<string>();
 
+  constructor() {
+    // Register Service Worker for reliable native Windows desktop notifications
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(err => {
+          console.warn('Service worker registration note:', err);
+        });
+      });
+    }
+  }
+
   isSupported(): boolean {
     return typeof window !== 'undefined' && 'Notification' in window;
   }
@@ -25,34 +36,51 @@ class NotificationManager {
   }
 
   /**
-   * Triggers sound + desktop notification + optional callback
+   * Triggers sound + desktop notification + in-app toast
    */
-  notifyQuotaReady(sub: Subscription, onToast?: (msg: string) => void) {
+  async notifyQuotaReady(sub: Subscription, onToast?: (msg: string) => void) {
     const meta = MODEL_CONFIGS[sub.model] || MODEL_CONFIGS.custom;
     const modelName = sub.model === 'custom' && sub.customModelName ? sub.customModelName : meta.name;
     const title = `⚡ ${modelName} Quota Ready!`;
     const body = `${modelName} (${sub.account}) quota has refreshed! Ready for coding.`;
 
-    // 1. Play anime chime
+    // 1. Play custom audio chime
     soundPlayer.playAnimeChime();
 
-    // 2. Browser Desktop Notification (works when tab is minimized or in background)
-    if (this.isSupported() && Notification.permission === 'granted') {
-      try {
-        const notif = new Notification(title, {
-          body,
-          icon: '/favicon.ico',
-          badge: '/favicon.ico',
-          tag: `quota-reset-${sub.id}-${sub.sessionResetAt}`,
-          requireInteraction: false,
-        });
+    // 2. Browser Desktop Notification (displays native Windows popup)
+    if (this.isSupported()) {
+      let perm = Notification.permission;
+      if (perm === 'default') {
+        perm = await Notification.requestPermission();
+      }
 
-        notif.onclick = () => {
-          window.focus();
-          notif.close();
+      if (perm === 'granted') {
+        const options: NotificationOptions = {
+          body,
+          tag: `quota-reset-${sub.id}-${Date.now()}`,
+          requireInteraction: true, // Keeps it pinned on Windows screen until dismissed
         };
-      } catch (e) {
-        console.warn('Notification error:', e);
+
+        // Try Service Worker notification first (best on Windows Chrome / Edge)
+        if ('serviceWorker' in navigator) {
+          try {
+            const reg = await navigator.serviceWorker.ready;
+            await reg.showNotification(title, options);
+          } catch {
+            // Fallback to standard window Notification
+            try {
+              new Notification(title, options);
+            } catch (e) {
+              console.warn('Direct notification error:', e);
+            }
+          }
+        } else {
+          try {
+            new Notification(title, options);
+          } catch (e) {
+            console.warn('Direct notification error:', e);
+          }
+        }
       }
     }
 
