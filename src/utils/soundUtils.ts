@@ -1,17 +1,7 @@
-// Web Audio API anime-style chime synthesizer + audio file fallback
+// Notification Sound Player: Plays custom /quota_ready.mp3 with synthesized anime chime fallback
 
 class NotificationSoundPlayer {
   private audioCtx: AudioContext | null = null;
-  private customAudio: HTMLAudioElement | null = null;
-
-  constructor() {
-    // Check if custom sound file exists in public/
-    try {
-      this.customAudio = new Audio('/quota_ready.mp3');
-    } catch {
-      this.customAudio = null;
-    }
-  }
 
   private getContext(): AudioContext {
     if (!this.audioCtx) {
@@ -25,24 +15,19 @@ class NotificationSoundPlayer {
   }
 
   /**
-   * Plays a custom anime-style crystalline sparkle chime (C5 - E5 - G5 - C6 sparkle)
-   * Designed using synthesized harmonic sine waves with reverb-like decay.
+   * Plays the custom SFX audio (/quota_ready.mp3) with synthesized anime sparkle chime fallback
    */
   playAnimeChime() {
     try {
-      // First try custom audio file if provided
-      if (this.customAudio && this.customAudio.src) {
-        this.customAudio.currentTime = 0;
-        const playPromise = this.customAudio.play();
-        if (playPromise) {
-          playPromise.catch(() => {
-            // If failed (e.g. file missing), fallback to synthesized anime chime
-            this.synthesizeAnimeChime();
-          });
-          return;
-        }
+      const audio = new Audio('/quota_ready.mp3');
+      audio.volume = 0.95;
+      const playPromise = audio.play();
+      if (playPromise) {
+        playPromise.catch((err) => {
+          console.warn('Audio play fallback to synthesized chime:', err);
+          this.synthesizeAnimeChime();
+        });
       }
-      this.synthesizeAnimeChime();
     } catch {
       this.synthesizeAnimeChime();
     }
@@ -54,18 +39,15 @@ class NotificationSoundPlayer {
       const now = ctx.currentTime;
 
       // Magical anime ascending pentatonic arpeggio frequencies (Hz)
-      // C5, E5, G5, B5, C6 with crystalline harmonics
       const notes = [523.25, 659.25, 783.99, 987.77, 1046.50, 1318.51];
 
       notes.forEach((freq, index) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
 
-        // Primary tone: Sine wave for pure bell-like anime chime
         osc.type = index % 2 === 0 ? 'sine' : 'triangle';
         osc.frequency.setValueAtTime(freq, now + index * 0.08);
 
-        // Envelope: Instant attack, smooth exponential decay
         const startTime = now + index * 0.08;
         gain.gain.setValueAtTime(0.001, startTime);
         gain.gain.exponentialRampToValueAtTime(0.18, startTime + 0.02);
@@ -78,12 +60,8 @@ class NotificationSoundPlayer {
         osc.stop(startTime + 0.95);
       });
     } catch (e) {
-      console.warn('Audio synthesis note:', e);
+      console.warn('Audio synthesis error:', e);
     }
-  }
-
-  setCustomSoundUrl(url: string) {
-    this.customAudio = new Audio(url);
   }
 }
 
