@@ -10,8 +10,13 @@ import { AnalyticsView } from './components/AnalyticsView';
 import { SubscriptionModal } from './components/SubscriptionModal';
 import { QuickSessionResetModal } from './components/QuickSessionResetModal';
 import { AuthView } from './components/AuthView';
+import { PinLockModal } from './components/PinLockModal';
+import { PinSettingsModal } from './components/PinSettingsModal';
+import { SnapshotsModal } from './components/SnapshotsModal';
 import { Subscription, ViewMode, FilterState, ThemeMode } from './types';
 import { THEMES } from './constants/themes';
+import { pinService } from './services/pinService';
+import { snapshotService, BackupSnapshot } from './services/snapshotService';
 import {
   fetchUserSubscriptions,
   saveSubscriptionToCloud,
@@ -48,6 +53,9 @@ export function App() {
   const [prefilledAccount, setPrefilledAccount] = useState('');
   const [isQuickResetOpen, setIsQuickResetOpen] = useState(false);
   const [quickResetSub, setQuickResetSub] = useState<Subscription | null>(null);
+  const [isPinSettingsOpen, setIsPinSettingsOpen] = useState(false);
+  const [isSnapshotsOpen, setIsSnapshotsOpen] = useState(false);
+  const [isLocked, setIsLocked] = useState<boolean>(() => pinService.isCurrentlyLocked());
   const [toast, setToast] = useState<string | null>(null);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
     notificationManager.getPermission()
@@ -136,11 +144,11 @@ export function App() {
         createdAt: subscriptions.find(s => s.id === editId)?.createdAt || now,
         updatedAt: now,
       };
-      setSubscriptions(prev =>
-        prev.map(s => s.id === editId ? updatedSub : s)
-      );
+      const updatedList = subscriptions.map(s => s.id === editId ? updatedSub : s);
+      setSubscriptions(updatedList);
       await saveSubscriptionToCloud(updatedSub);
-      showToast('Subscription updated ✦');
+      showToast('Subscription updated ✦ (Snapshot auto-saved)');
+      await snapshotService.createSnapshot(updatedList, `Updated ${updatedSub.model} for ${updatedSub.account}`);
     } else {
       const newSub: Subscription = {
         ...data,
@@ -148,9 +156,11 @@ export function App() {
         createdAt: now,
         updatedAt: now,
       };
-      setSubscriptions(prev => [newSub, ...prev]);
+      const updatedList = [newSub, ...subscriptions];
+      setSubscriptions(updatedList);
       await saveSubscriptionToCloud(newSub);
-      showToast('New AI subscription added ✧');
+      showToast('New AI subscription added ✧ (Snapshot auto-saved)');
+      await snapshotService.createSnapshot(updatedList, `Added ${newSub.model} for ${newSub.account}`);
     }
   };
 
@@ -158,10 +168,20 @@ export function App() {
     const t = subscriptions.find(s => s.id === id);
     if (!t) return;
     if (confirm(`Delete ${t.model} for ${t.account}?`)) {
-      setSubscriptions(prev => prev.filter(s => s.id !== id));
+      const updatedList = subscriptions.filter(s => s.id !== id);
+      setSubscriptions(updatedList);
       await deleteSubscriptionFromCloud(id);
-      showToast('Subscription deleted');
+      showToast('Subscription deleted (Snapshot auto-saved)');
+      await snapshotService.createSnapshot(updatedList, `Deleted ${t.model} (${t.account})`);
     }
+  };
+
+  const handleRestoreSnapshot = async (restoredSubs: Subscription[], snapshot: BackupSnapshot) => {
+    setSubscriptions(restoredSubs);
+    for (const sub of restoredSubs) {
+      await saveSubscriptionToCloud(sub);
+    }
+    await snapshotService.createSnapshot(restoredSubs, `Restored from snapshot of ${new Date(snapshot.createdAt).toLocaleDateString()}`);
   };
 
   const handleTriggerSessionReset = async (sub: Subscription, hoursOrDate: number | Date | string) => {
@@ -351,6 +371,13 @@ export function App() {
         notificationPermission={notifPermission}
         onRequestNotificationPermission={handleRequestPermission}
         onTestNotification={handleTestNotification}
+        isPinSet={pinService.isPinSet()}
+        onOpenPinLock={() => {
+          pinService.lock();
+          setIsLocked(true);
+        }}
+        onOpenPinSettings={() => setIsPinSettingsOpen(true)}
+        onOpenSnapshots={() => setIsSnapshotsOpen(true)}
       />
 
       {/* Main content shell */}
@@ -488,6 +515,32 @@ export function App() {
         subscriptions={subscriptions}
         onTriggerReset={handleTriggerSessionReset}
         initialSubscription={quickResetSub}
+      />
+
+      {/* Fast 1-Click PIN Lock Screen */}
+      <PinLockModal
+        isOpen={isLocked}
+        onUnlock={() => setIsLocked(false)}
+        onOpenAuth={() => {
+          setIsLocked(false);
+          setShowAuthModal(true);
+        }}
+      />
+
+      {/* PIN Setup & Configuration Modal */}
+      <PinSettingsModal
+        isOpen={isPinSettingsOpen}
+        onClose={() => setIsPinSettingsOpen(false)}
+        onToast={showToast}
+      />
+
+      {/* Auto Cloud Backup Snapshots History Modal */}
+      <SnapshotsModal
+        isOpen={isSnapshotsOpen}
+        onClose={() => setIsSnapshotsOpen(false)}
+        currentSubscriptions={subscriptions}
+        onRestore={handleRestoreSnapshot}
+        onToast={showToast}
       />
     </div>
   );

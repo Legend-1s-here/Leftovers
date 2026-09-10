@@ -22,6 +22,10 @@ interface HeaderProps {
   notificationPermission: NotificationPermission;
   onRequestNotificationPermission: () => void;
   onTestNotification: () => void;
+  isPinSet: boolean;
+  onOpenPinLock: () => void;
+  onOpenPinSettings: () => void;
+  onOpenSnapshots: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -43,6 +47,10 @@ export const Header: React.FC<HeaderProps> = ({
   notificationPermission,
   onRequestNotificationPermission,
   onTestNotification,
+  isPinSet,
+  onOpenPinLock,
+  onOpenPinSettings,
+  onOpenSnapshots,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isThemePickerOpen, setIsThemePickerOpen] = useState(false);
@@ -158,6 +166,97 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>Sign In / Cloud Sync</span>
               </button>
             )}
+
+            {/* Fast Device PIN Lock */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              {isPinSet ? (
+                <div style={{ display: 'flex', gap: 2 }}>
+                  <button
+                    onClick={onOpenPinLock}
+                    title="Lock dashboard now (1-click PIN unlock)"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '9px 12px',
+                      borderRadius: '12px 4px 4px 12px',
+                      background: 'rgba(154, 77, 255, 0.16)',
+                      border: '1px solid rgba(154, 77, 255, 0.35)',
+                      borderRight: 'none',
+                      color: '#d9caff',
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    <span>🔒</span>
+                    <span>Lock</span>
+                  </button>
+                  <button
+                    onClick={onOpenPinSettings}
+                    title="PIN settings"
+                    style={{
+                      padding: '9px 10px',
+                      borderRadius: '4px 12px 12px 4px',
+                      background: 'rgba(154, 77, 255, 0.16)',
+                      border: '1px solid rgba(154, 77, 255, 0.35)',
+                      color: '#d9caff',
+                      fontSize: 11,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                    }}
+                  >
+                    ⚙
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={onOpenPinSettings}
+                  title="Set up 4-digit PIN for 1-click device unlock"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '9px 12px',
+                    borderRadius: 12,
+                    background: 'rgba(144, 153, 220, 0.1)',
+                    border: '1px solid rgba(144, 153, 220, 0.22)',
+                    color: '#c2cae5',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  <span>🔐</span>
+                  <span>Set PIN</span>
+                </button>
+              )}
+            </div>
+
+            {/* Cloud Auto-Backup Snapshots */}
+            <button
+              onClick={onOpenSnapshots}
+              title="View auto-saved cloud backup snapshots & restore history"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '9px 12px',
+                borderRadius: 12,
+                background: 'rgba(76, 219, 172, 0.12)',
+                border: '1px solid rgba(76, 219, 172, 0.3)',
+                color: '#4cdbac',
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              <span>☁</span>
+              <span>Snapshots</span>
+            </button>
 
             {/* Visual Theme Switcher Dropdown */}
             <div style={{ position: 'relative' }}>
