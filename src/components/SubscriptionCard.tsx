@@ -76,11 +76,11 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        border: hovered ? '1px solid rgba(159,114,255,.72)' : '1px solid var(--line)',
+        border: hovered ? '1px solid var(--card-hover-border)' : '1px solid var(--line)',
         borderTop: `3px solid ${accentColor}`,
         borderRadius: 20,
-        background: 'linear-gradient(145deg, rgba(16,25,53,.94), rgba(10,15,34,.96))',
-        boxShadow: hovered ? '0 28px 65px rgba(28,15,75,.48)' : 'var(--shadow)',
+        background: 'var(--card-bg)',
+        boxShadow: hovered ? 'var(--card-hover-shadow)' : 'var(--shadow)',
         overflow: 'hidden',
         transition: 'transform .28s, border-color .28s, box-shadow .28s',
         transform: hovered ? 'translateY(-6px)' : 'none',
@@ -94,7 +94,8 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
       <div style={{
         position: 'absolute', top: -65, right: -30,
         width: 175, height: 170, pointerEvents: 'none',
-        background: 'radial-gradient(circle, rgba(59,126,255,.18), transparent 68%)',
+        background: 'radial-gradient(circle, var(--purple), transparent 68%)',
+        opacity: 0.15,
       }} />
 
       {/* Top Card Head */}
@@ -140,14 +141,14 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
         <div style={{
           display: 'flex', alignItems: 'center', gap: 9,
           marginTop: 18, padding: '11px 14px',
-          border: '1px solid rgba(131,147,221,.16)',
-          borderRadius: 12, background: 'rgba(4,9,25,.55)',
-          color: '#d7def4', fontSize: 12,
+          border: '1px solid var(--pill-border)',
+          borderRadius: 12, background: 'var(--pill-bg)',
+          color: 'var(--text)', fontSize: 12,
         }}>
           <i style={{ width: 9, height: 9, borderRadius: '50%', background: sub.accountColor || '#4cdbac', boxShadow: `0 0 10px ${sub.accountColor || '#4cdbac'}`, display: 'inline-block' }} />
           <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500 }}>{sub.account}</span>
           {sub.accountTag && (
-            <span style={{ marginLeft: 'auto', color: '#a992ff', background: 'rgba(144,75,255,.2)', padding: '4px 8px', borderRadius: 6, fontSize: 10, fontWeight: 600 }}>
+            <span style={{ marginLeft: 'auto', color: 'var(--purple)', background: 'rgba(144,75,255,.15)', padding: '4px 8px', borderRadius: 6, fontSize: 10, fontWeight: 600 }}>
               {sub.accountTag}
             </span>
           )}

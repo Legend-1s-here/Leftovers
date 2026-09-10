@@ -2,11 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── CSS design tokens from the uploaded QuotaVerse design ── */
-:root {
+/* ── Default / Neon Shonen Cyberpunk ── */
+:root, [data-theme="shonen"] {
   --bg: #070918;
-  --panel: rgba(14, 19, 42, .82);
+  --panel: rgba(14, 19, 42, .85);
   --panel-2: #101733;
+  --card-bg: linear-gradient(145deg, rgba(16,25,53,.94), rgba(10,15,34,.96));
+  --card-hover-border: rgba(159,114,255,.72);
+  --card-hover-shadow: 0 28px 65px rgba(28,15,75,.48);
   --line: rgba(147, 164, 255, .16);
   --text: #f6f4ff;
   --muted: #8f98ba;
@@ -18,8 +21,106 @@
   --yellow: #ffd75e;
   --orange: #ff9e54;
   --red: #ff5d78;
-  --shadow: 0 24px 70px rgba(0,0,0,.3);
+  --shadow: 0 24px 70px rgba(0,0,0,.35);
   --radius: 19px;
+  --header-bg: rgba(7,9,24,.84);
+  --pill-bg: rgba(4,9,25,.55);
+  --pill-border: rgba(131,147,221,.16);
+  --btn-primary-bg: linear-gradient(135deg, #993dff, #6328dc);
+  --btn-primary-shadow: 0 10px 26px rgba(111,41,228,.33);
+  --ring-border-1: rgba(57,220,255,.42);
+  --ring-border-2: rgba(255,91,158,.55);
+  --ring-border-3: rgba(255,216,91,.66);
+}
+
+/* ── Torii Gate Sunset Theme ── */
+[data-theme="torii"] {
+  --bg: #0f050b;
+  --panel: rgba(36, 12, 24, .86);
+  --panel-2: #240b17;
+  --card-bg: linear-gradient(145deg, rgba(42, 14, 28, .95), rgba(20, 7, 15, .97));
+  --card-hover-border: rgba(255, 94, 72, .75);
+  --card-hover-shadow: 0 28px 65px rgba(100, 20, 15, .55);
+  --line: rgba(255, 110, 80, .22);
+  --text: #fff3f0;
+  --muted: #c4a1ab;
+  --purple: #ff5e48;
+  --violet: #d93829;
+  --cyan: #ff9e54;
+  --pink: #ff6b8b;
+  --green: #4cdbac;
+  --yellow: #ffd75e;
+  --orange: #ff8c38;
+  --red: #ff3b56;
+  --shadow: 0 24px 70px rgba(40,5,10,.5);
+  --header-bg: rgba(18, 6, 14, .88);
+  --pill-bg: rgba(24, 6, 16, .65);
+  --pill-border: rgba(255, 110, 80, .25);
+  --btn-primary-bg: linear-gradient(135deg, #ff5e48, #d92c1e);
+  --btn-primary-shadow: 0 10px 26px rgba(230, 60, 40, .38);
+  --ring-border-1: rgba(255, 158, 84, .55);
+  --ring-border-2: rgba(255, 75, 75, .6);
+  --ring-border-3: rgba(255, 215, 94, .7);
+}
+
+/* ── Minimalist Dark Mode Theme ── */
+[data-theme="minimalist"] {
+  --bg: #030407;
+  --panel: rgba(15, 18, 26, .92);
+  --panel-2: #0e111a;
+  --card-bg: linear-gradient(145deg, rgba(18, 22, 32, .98), rgba(10, 12, 18, .99));
+  --card-hover-border: rgba(255, 255, 255, .35);
+  --card-hover-shadow: 0 24px 60px rgba(0,0,0,.85);
+  --line: rgba(255, 255, 255, .1);
+  --text: #f8fafc;
+  --muted: #78859b;
+  --purple: #cbd5e1;
+  --violet: #94a3b8;
+  --cyan: #38bdf8;
+  --pink: #f472b6;
+  --green: #34d399;
+  --yellow: #fbbf24;
+  --orange: #fb923c;
+  --red: #f87171;
+  --shadow: 0 24px 70px rgba(0,0,0,.7);
+  --header-bg: rgba(3, 4, 7, .92);
+  --pill-bg: rgba(255, 255, 255, .04);
+  --pill-border: rgba(255, 255, 255, .12);
+  --btn-primary-bg: linear-gradient(135deg, #475569, #1e293b);
+  --btn-primary-shadow: 0 10px 26px rgba(0, 0, 0, .5);
+  --ring-border-1: transparent;
+  --ring-border-2: transparent;
+  --ring-border-3: transparent;
+}
+
+/* ── Lo-Fi Study / Coding Room Theme ── */
+[data-theme="lofi"] {
+  --bg: #080916;
+  --panel: rgba(18, 20, 48, .86);
+  --panel-2: #131535;
+  --card-bg: linear-gradient(145deg, rgba(24, 26, 62, .95), rgba(12, 14, 34, .97));
+  --card-hover-border: rgba(167, 139, 250, .72);
+  --card-hover-shadow: 0 28px 65px rgba(28, 20, 75, .52);
+  --line: rgba(167, 139, 250, .2);
+  --text: #f3f1ff;
+  --muted: #969abf;
+  --purple: #a78bfa;
+  --violet: #7c3aed;
+  --cyan: #818cf8;
+  --pink: #f472b6;
+  --green: #4cdbac;
+  --yellow: #fde047;
+  --orange: #fb923c;
+  --red: #fb7185;
+  --shadow: 0 24px 70px rgba(10,5,30,.45);
+  --header-bg: rgba(8, 9, 22, .88);
+  --pill-bg: rgba(12, 14, 36, .65);
+  --pill-border: rgba(167, 139, 250, .22);
+  --btn-primary-bg: linear-gradient(135deg, #a78bfa, #6366f1);
+  --btn-primary-shadow: 0 10px 26px rgba(124, 58, 237, .35);
+  --ring-border-1: rgba(167, 139, 250, .45);
+  --ring-border-2: rgba(129, 140, 248, .5);
+  --ring-border-3: rgba(244, 114, 182, .55);
 }
 
 @layer base {
@@ -33,6 +134,7 @@
     font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
+    transition: background-color .3s ease, color .3s ease;
   }
 
   h1, h2, h3 {
@@ -43,8 +145,8 @@
   p { margin: 0; }
 }
 
-/* ── Anime background: shonen wallpaper + dark overlay ── */
-body::before {
+/* ── Anime background for Shonen ── */
+[data-theme="shonen"] body::before {
   content: '';
   position: fixed;
   inset: 0;
@@ -67,125 +169,79 @@ body::after {
   content: '';
   position: fixed;
   inset: 0;
-  z-index: -2;
+  z-index: -1;
   pointer-events: none;
-  opacity: .2;
   background-image:
-    linear-gradient(rgba(138,143,255,.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(138,143,255,.05) 1px, transparent 1px);
-  background-size: 46px 46px;
-  -webkit-mask-image: linear-gradient(to bottom, black, transparent 72%);
-  mask-image: linear-gradient(to bottom, black, transparent 72%);
+    linear-gradient(rgba(147,164,255,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(147,164,255,.03) 1px, transparent 1px);
+  background-size: 42px 42px;
 }
 
-/* ── Anime aura blobs ── */
+/* ── Anime Conic aura blobs ── */
 .anime-aura {
   position: fixed;
-  z-index: 1;
-  width: 38vw;
-  height: 38vw;
-  max-width: 560px;
-  max-height: 560px;
   border-radius: 50%;
+  filter: blur(88px);
+  opacity: .36;
+  z-index: 0;
   pointer-events: none;
-  filter: blur(28px);
-  opacity: .15;
-  background: conic-gradient(from 40deg, transparent, #ff3e70, #783cff, transparent 55%, #1dd6ee, transparent);
-  animation: auraSpin 18s linear infinite;
+  animation: auraSpin 24s linear infinite alternate;
 }
-.aura-one { top: -16vw; right: -8vw; }
-.aura-two { bottom: -19vw; left: -13vw; animation-direction: reverse; animation-duration: 25s; opacity: .12; }
+.aura-one {
+  width: 480px;
+  height: 480px;
+  top: -120px;
+  left: -80px;
+  background: conic-gradient(from 180deg at 50% 50%, var(--purple) 0deg, var(--cyan) 160deg, transparent 310deg);
+}
+.aura-two {
+  width: 420px;
+  height: 420px;
+  top: 40%;
+  right: -90px;
+  background: conic-gradient(from 0deg at 50% 50%, var(--pink) 0deg, var(--purple) 180deg, transparent 330deg);
+  animation-duration: 32s;
+  animation-direction: reverse;
+}
 
 /* ── Manga speed lines ── */
 .manga-lines {
   position: fixed;
   inset: 0;
-  z-index: 1;
+  z-index: 0;
   pointer-events: none;
-  opacity: .23;
-  background: repeating-conic-gradient(
-    from 210deg at 78% 17%,
-    transparent 0deg 4deg,
-    rgba(255,255,255,.13) 4.6deg 5deg,
-    transparent 5.4deg 10deg
-  );
-  -webkit-mask-image: radial-gradient(ellipse at 78% 17%, black, transparent 48%);
-  mask-image: radial-gradient(ellipse at 78% 17%, black, transparent 48%);
-  animation: linesPulse 6s ease-in-out infinite;
+  opacity: .13;
+  background-image:
+    repeating-radial-gradient(circle at 82% 18%, transparent 0, transparent 4px, var(--line) 5px, transparent 7px);
+  mask-image: radial-gradient(circle at 80% 20%, black 20%, transparent 68%);
+  animation: linesPulse 8s ease-in-out infinite alternate;
 }
 
-/* ── Ninja sky (moon, mountain, village) ── */
+/* ── Ninja Sky Silhouette ── */
 .ninja-sky {
   position: fixed;
   inset: 0;
-  z-index: -2;
+  z-index: 0;
   pointer-events: none;
   overflow: hidden;
-  opacity: .12;
 }
-.moon {
+.ninja-sky .moon {
   position: absolute;
-  width: 150px;
-  height: 150px;
-  right: 13%;
-  top: 7%;
+  top: 48px;
+  right: 14%;
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #fff4c9 0 4%, #ffc56a 16%, #cf78ff 51%, rgba(110,52,255,.18) 68%, transparent 70%);
-  box-shadow: 0 0 34px rgba(255,165,91,.42), 0 0 100px rgba(138,73,255,.42);
-  animation: moonGlow 4s ease-in-out infinite;
+  background: radial-gradient(circle at 35% 35%, #fff 0%, #ffe9b7 42%, #ffb648 85%);
+  box-shadow: 0 0 55px rgba(255,200,90,.75), 0 0 130px rgba(255,140,40,.35);
+  animation: moonGlow 5s ease-in-out infinite;
 }
-.moon::after {
-  content: '';
+.ninja-sky .chakra-orb {
   position: absolute;
-  inset: 17px;
-  border-radius: 50%;
-  opacity: .3;
-  background:
-    radial-gradient(circle at 20% 42%, #7a3d9e 0 5%, transparent 6%),
-    radial-gradient(circle at 65% 22%, #6e368d 0 8%, transparent 9%),
-    radial-gradient(circle at 70% 72%, #7d4698 0 6%, transparent 7%);
-}
-.mountain {
-  position: absolute;
-  left: -5%;
-  bottom: 4%;
-  width: 110%;
-  height: 32%;
-  background: #08091c;
-  clip-path: polygon(0 90%,12% 63%,19% 77%,31% 36%,43% 72%,53% 45%,65% 78%,78% 29%,88% 67%,100% 45%,100% 100%,0 100%);
-  opacity: .94;
-}
-.mountain.back {
-  bottom: 13%;
-  height: 24%;
-  opacity: .4;
-  filter: blur(1px);
-  background: #303074;
-  transform: scaleX(1.08);
-}
-.village {
-  position: absolute;
-  bottom: 22%;
-  left: 0;
-  width: 100%;
-  height: 44px;
-  opacity: .5;
-  background: linear-gradient(90deg,
-    transparent 0 3%, #08091b 3% 5%, transparent 5% 8%, #08091b 8% 9%,
-    transparent 9% 13%, #08091b 13% 16%, transparent 16% 21%, #08091b 21% 24%,
-    transparent 24% 28%, #08091b 28% 30%, transparent 30% 36%, #08091b 36% 38%,
-    transparent 38% 45%, #08091b 45% 48%, transparent 48% 56%, #08091b 56% 58%,
-    transparent 58% 64%, #08091b 64% 67%, transparent 67% 73%, #08091b 73% 75%,
-    transparent 75% 82%, #08091b 82% 85%, transparent 85% 91%, #08091b 91% 94%,
-    transparent 94%);
-  filter: drop-shadow(0 0 9px rgba(255,108,61,.25));
-}
-.chakra-orb {
-  position: absolute;
-  left: 15%;
-  top: 38%;
-  width: 18px;
-  height: 18px;
+  top: 140px;
+  right: 21%;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: #ff6c3d;
   box-shadow: 0 0 12px #ff6c3d, 0 0 42px #ff3e70;
@@ -209,16 +265,16 @@ body::after {
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: rgba(7,9,24,.6); }
-::-webkit-scrollbar-thumb { background: rgba(147,164,255,.2); border-radius: 9999px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(154,77,255,.4); }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--purple); }
 
 /* ── Component helpers ── */
 .energy-ring {
   position: absolute;
   width: 84px;
   height: 84px;
-  border: 1px solid rgba(57,220,255,.42);
+  border: 1px solid var(--ring-border-1);
   border-radius: 50%;
   right: 20px;
   top: 20px;
@@ -231,13 +287,13 @@ body::after {
   content: '';
   position: absolute;
   inset: 9px;
-  border: 1px dashed rgba(255,91,158,.55);
+  border: 1px dashed var(--ring-border-2);
   border-radius: 50%;
   animation: ringSpin 7s linear infinite;
 }
 .energy-ring::after {
   inset: 20px;
-  border-color: rgba(255,216,91,.66);
+  border-color: var(--ring-border-3);
   animation-direction: reverse;
   animation-duration: 4s;
 }

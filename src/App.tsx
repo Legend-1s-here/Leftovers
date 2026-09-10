@@ -53,6 +53,11 @@ export function App() {
     notificationManager.getPermission()
   );
 
+  // Sync data-theme attribute on document root
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
   // Background ticker to check when any quota countdown hits 00:00:00
   useEffect(() => {
     const timer = setInterval(() => {
